@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.Date;
+import java.util.Vector;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JFileChooser;
@@ -30,12 +31,16 @@ import javax.swing.Timer;
  * @author Enamul
  */
 public class RunContest extends javax.swing.JFrame {
+
     String username;
     StartContest upperClass;
     Contest contest;
-    Timer timer;
+    Timer timer, runSubmission;
+    int runningThread[] = new int[1];
+    int limitThread;
     String days[] = {"Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"};
     private String saveFile;
+    Vector<Thread> inQueue;
 
     /**
      * Creates new form RunContest
@@ -43,13 +48,17 @@ public class RunContest extends javax.swing.JFrame {
     public RunContest(StartContest upper, String filePath, String username) {
         super("Contest Running");
         initComponents();
+        this.inQueue = new Vector<>();
         this.upperClass = upper;
         loadContest(new File(filePath));
         this.saveFile = filePath;
         this.username = username;
-        
+        runningThread[0] = 0;
+
+        /// max number of parallel submission 
+        limitThread = 1;
         jLabelUser.setText(String.format("Hi, %s", username));
-        
+
         addWindowListener(new WindowAdapter() {
             @Override
             public void windowClosing(WindowEvent e) {
@@ -83,6 +92,29 @@ public class RunContest extends javax.swing.JFrame {
         });
         timer.setRepeats(true);
         timer.start();
+
+        runSubmission = new Timer(300, new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent ae) {
+                System.out.println("running: " + runningThread[0] + ", limit: " + limitThread + ", inQueue: " + inQueue.size() + ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
+                
+                if (limitThread == runningThread[0]) {
+                    return;
+                }
+                
+                while (limitThread > runningThread[0]) {
+                    if (inQueue.size() == 0) {
+                        return;
+                    }
+                    runningThread[0]++;
+                    System.out.println("thread name: "+inQueue.elementAt(0).getName());
+                    inQueue.elementAt(0).start();
+                    inQueue.removeElementAt(0);
+                }
+            }
+        });
+        runSubmission.setRepeats(true);
+        runSubmission.start();
 
         //adjust screen
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
@@ -121,10 +153,25 @@ public class RunContest extends javax.swing.JFrame {
         }
 
         refreshSolved();
-
+        loadSubmissionQueue();
 //        jComboBoxLanguage.addItem("C");
         jComboBoxLanguage.addItem("C++");
 //        jComboBoxLanguage.addItem("JAVA");
+    }
+    
+    void loadSubmissionQueue(){
+        for (int i = 0; i < contest.submissions.size(); i++) {
+            Submission sub = contest.submissions.elementAt(i);
+            if(sub.verdict.equalsIgnoreCase("IN QUEUE")){
+                RunProgram rp = new RunProgram(sub, contest,runningThread,this);
+                inQueue.add(rp.getThread());
+            }
+            else if(sub.verdict.startsWith("RUNNING...")){
+                sub.verdict = "IN QUEUE";
+                RunProgram rp = new RunProgram(sub, contest,runningThread,this);
+                inQueue.add(rp.getThread());
+            }
+        }
     }
 
     void refreshSolved() {
@@ -404,14 +451,19 @@ public class RunContest extends javax.swing.JFrame {
         int problemId = jComboBoxProblemName.getSelectedIndex();
 //        Submission runningSubmission = new Submission(new Date(), language, contest.problems[problemId].problemName, "Running", contest.passedTime);
 //        contest.submissions.add(runningSubmission);
-        RunProgram rp = new RunProgram(language, new File(jTextFieldFilePath.getText()), contest.problems[jComboBoxProblemName.getSelectedIndex()], contest, this,username);
 
+        RunProgram rp = new RunProgram(language, new File(jTextFieldFilePath.getText()), contest.problems[jComboBoxProblemName.getSelectedIndex()], contest, this, username,  runningThread);
 
+        inQueue.add(rp.getThread());
+        /// go to submission page
+        new ShowSubmissions(contest, this).setVisible(true);
+        setVisible(false);
     }//GEN-LAST:event_jButtonSubmitActionPerformed
 
     private void jButtonSaveAndExitActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonSaveAndExitActionPerformed
         // TODO add your handling code here:
         timer.stop();
+        runSubmission.stop();
 
         try {
             // TODO add your handling code here:

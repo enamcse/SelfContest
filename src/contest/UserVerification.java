@@ -80,6 +80,12 @@ public class UserVerification extends javax.swing.JFrame {
 
         jTextFieldJudgeIP.setText("localhost");
 
+        jPasswordFieldPass.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jPasswordFieldPassActionPerformed(evt);
+            }
+        });
+
         jButtonExit.setText("Exit");
         jButtonExit.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -230,6 +236,11 @@ public class UserVerification extends javax.swing.JFrame {
             java.util.logging.Logger.getLogger(ShowSubmissions.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }
     }//GEN-LAST:event_jButtonSubmitActionPerformed
+
+    private void jPasswordFieldPassActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jPasswordFieldPassActionPerformed
+        // TODO add your handling code here:
+        jButtonSubmitActionPerformed(evt);
+    }//GEN-LAST:event_jPasswordFieldPassActionPerformed
 
     /**
      * @param args the command line arguments

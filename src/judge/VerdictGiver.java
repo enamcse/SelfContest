@@ -11,6 +11,7 @@ import java.nio.file.Files;
 import javax.swing.JOptionPane;
 import static javax.swing.JOptionPane.ERROR_MESSAGE;
 import contest.Problem;
+import contest.Submission;
 
 /**
  *
@@ -23,7 +24,7 @@ public class VerdictGiver  {
 //        private String[] userOUT;
         Problem problem;
         File fileCPP;
-
+        Submission runningSubmission;
 //        /**
 //         * If the specified file is running then it kills the program and then
 //         * deletes the file.
@@ -44,16 +45,17 @@ public class VerdictGiver  {
          * @param fileSTDIN     input file path
          * @param fileSTDOUT    output file path
          */
-        public VerdictGiver(File fileCPP, Problem problem) {
+        public VerdictGiver(File fileCPP, Problem problem, Submission sub) {
             this.fileCPP = fileCPP;
             this.problem = problem;
+            this.runningSubmission = sub;
         }
         /**
          * process data and gives verdicts.
          */
         public String process() {
 
-            return codeProcessor.process(fileCPP, problem);
+            return codeProcessor.process(fileCPP, problem, runningSubmission);
 
 //            if (userOUT.length <= 1) {
 //                if (matcher.process(new File(userOUT[0]), fileSTDOUT)) {

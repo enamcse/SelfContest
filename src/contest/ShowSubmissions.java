@@ -7,8 +7,12 @@ package contest;
 
 import java.awt.Dimension;
 import java.awt.Toolkit;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.util.Date;
+import javax.swing.Timer;
 import static javax.swing.WindowConstants.DISPOSE_ON_CLOSE;
 import javax.swing.table.DefaultTableModel;
 
@@ -32,6 +36,7 @@ public class ShowSubmissions extends javax.swing.JFrame {
             model.setValueAt(contest.submissions.get(i).problemName, i, 4);
             model.setValueAt(contest.submissions.get(i).language, i, 5);
             model.setValueAt(contest.submissions.get(i).verdict, i, 6);
+            model.setValueAt(contest.submissions.get(i).timeElapsed, i, 7);
         }
     }
     
@@ -46,6 +51,15 @@ public class ShowSubmissions extends javax.swing.JFrame {
         this.upperClass = upper;
         
         reload();
+        
+        Timer timer = new Timer(1000, new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent ae) {
+                reload();
+            }
+        });
+        timer.setRepeats(true);
+        timer.start();
         
         addWindowListener(new WindowAdapter() {
             @Override
@@ -89,14 +103,14 @@ public class ShowSubmissions extends javax.swing.JFrame {
 
             },
             new String [] {
-                "No", "Date", "At time", "Username", "Problem Name", "Language", "Verdict"
+                "No", "Date", "At time", "Username", "Problem Name", "Language", "Verdict", "Time Elapsed(ms)"
             }
         ) {
             Class[] types = new Class [] {
-                java.lang.Integer.class, java.lang.Object.class, java.lang.Object.class, java.lang.Object.class, java.lang.Object.class, java.lang.Object.class, java.lang.Object.class
+                java.lang.Integer.class, java.lang.Object.class, java.lang.Object.class, java.lang.Object.class, java.lang.Object.class, java.lang.Object.class, java.lang.Object.class, java.lang.Object.class
             };
             boolean[] canEdit = new boolean [] {
-                false, false, false, false, false, false, false
+                false, false, false, false, false, false, false, false
             };
 
             public Class getColumnClass(int columnIndex) {
@@ -116,6 +130,7 @@ public class ShowSubmissions extends javax.swing.JFrame {
             jTableStatus.getColumnModel().getColumn(4).setPreferredWidth(100);
             jTableStatus.getColumnModel().getColumn(5).setPreferredWidth(10);
             jTableStatus.getColumnModel().getColumn(6).setPreferredWidth(100);
+            jTableStatus.getColumnModel().getColumn(7).setPreferredWidth(40);
         }
 
         jLabel1.setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N

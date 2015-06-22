@@ -13,6 +13,8 @@ import java.nio.file.Files;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import contest.Problem;
+import contest.Submission;
+import java.util.Date;
 
 /**
  * All the verdicts of c codes are created by this class. But the process of
@@ -113,8 +115,11 @@ public class CodeProcessing {
             }
         } catch (InterruptedException ex) {
         }
-
+        try{
         codeRunner.pr.destroy();
+        }catch(Exception ex){
+            System.out.println("Exception: "+ex);
+        }
 //        deleteFile(fileEXE);
 
         if (timeLimitExceeded == true) {
@@ -140,21 +145,27 @@ public class CodeProcessing {
      * the verdict code if the output is not correct otherwise array of string
      * size one containing the output file name.
      */
-    public synchronized String process(File fileCPP, Problem problem) {
+    public synchronized String process(File fileCPP, Problem problem, Submission submission) {
+        submission.verdict = "COMPILING";
         File fileEXE = compileCode(fileCPP);
         if (fileEXE == null) {
 //            System.out.println("CodeProcessing, 136 null");
             return "COMPILE ERROR";
         }
+        
 //        System.out.println("CodeProcessing 141\n");
 //        problem.timeLimit = 5000;
         if (problem.oneFile) {
             File fileSTDOUT = new File(String.format("output%d.txt", getNewFileNumber()));
             deleteFile(fileSTDOUT);
+            submission.verdict = "RUNNING...";
+            Date now = new Date();
             int verdictCode = RunProgram(fileEXE, problem.inputFile, fileSTDOUT, problem.timeLimit);
+            
             deleteFile(fileEXE);
 
             if (verdictCode == 4) {
+                submission.timeElapsed = new Date().getTime() - now.getTime();
                 return "TIME LIMIT EXCEEDED";
 
             }
@@ -164,13 +175,16 @@ public class CodeProcessing {
 
             if (matcher.process(problem,fileSTDOUT, problem.outputFile)) {
                 deleteFiles(fileSTDOUT);
+                submission.timeElapsed = new Date().getTime() - now.getTime();
                 return "ACCEPTED";
             } else {
                 deleteFiles(fileSTDOUT);
                 System.out.println("returned from 166th line");
                 return "WRONG ANSWER";
             }
+            
         } else {
+            submission.verdict = String.format("PREPARING TESTS...");
             File inputFiles[] = problem.folderPath.listFiles(new FilenameFilter() {
                 @Override
                 public boolean accept(File dir, String name) {
@@ -180,9 +194,9 @@ public class CodeProcessing {
             });
             
             int extensionLength = problem.inputExtension.length();
-            
+            Date now = new Date();
             for (int i = 0; i < inputFiles.length; i++) {
-
+                submission.verdict = String.format("RUNNING...(%d)",i+1);
                 File fileSTDOUT = new File(String.format("output%d.txt", getNewFileNumber()));
                 deleteFile(fileSTDOUT);
                 int verdictCode = RunProgram(fileEXE, inputFiles[i], fileSTDOUT, problem.timeLimit);
@@ -191,6 +205,7 @@ public class CodeProcessing {
                 if (verdictCode == 4) {
                     deleteFile(fileEXE);
                     deleteFiles(fileSTDOUT);
+                    submission.timeElapsed = problem.timeLimit;
                     return "TIME LIMIT EXCEEDED";
 
                 }
@@ -208,6 +223,8 @@ public class CodeProcessing {
                 }
                 deleteFiles(fileSTDOUT);
             }
+            submission.timeElapsed = new Date().getTime() - now.getTime();
+            submission.timeElapsed/=inputFiles.length;
             deleteFile(fileEXE);
             return "ACCEPTED";
         }
