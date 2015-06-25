@@ -1,0 +1,18 @@
+<#if licenseFirst??>
+${licenseFirst}
+</#if>
+${licensePrefix}Copyright ${date?date?string("yyyy")} ${project.organization!user}.
+${licensePrefix?replace(" +$", "", "r")}
+${licensePrefix}Most of my softwares are open for educational purpose, but some are 
+${licensePrefix}confidential. So, before using it openly drop me some lines at
+${licensePrefix?replace(" +$", "", "r")}
+${licensePrefix}     enamsustcse@gmail.com
+${licensePrefix?replace(" +$", "", "r")}
+${licensePrefix}I do not guarantee that the software would work properly. There could
+${licensePrefix}remain bugs. If you found any of them, kindly report me.
+${licensePrefix}If you need to use this or some part of it, use it at your own risk.
+${licensePrefix}This software is not a professionally developed, so commercial use 
+${licensePrefix}is not approved by default.
+<#if licenseLast??>
+${licenseLast}
+</#if>
