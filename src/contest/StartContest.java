@@ -239,7 +239,7 @@ public class StartContest extends javax.swing.JFrame {
 //            Logger.getLogger(StartContest.class.getName()).log(Level.SEVERE, null, ex);
 //        }
         
-        new RunContest(upperClass, username, sha512Hex("localhost"), role, lowerClass, judgeIP).setVisible(true);
+        lowerClass.judgeGUI = new RunContest(upperClass, username, sha512Hex("localhost"), role, lowerClass, judgeIP);
         setVisible(false);
     }//GEN-LAST:event_jButtonSubmitActionPerformed
     

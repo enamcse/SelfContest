@@ -59,7 +59,7 @@ import static security.Hashing.sha512Hex;
  * @author Enamul
  */
 public class RunContest extends javax.swing.JFrame {
-
+    
     String username;
     String role;
     UserInterface upperClass;
@@ -91,7 +91,7 @@ public class RunContest extends javax.swing.JFrame {
          * It handles several notification at the same time.
          */
         class NotifySocket implements Runnable {
-
+            
             Socket connection;
 
             /**
@@ -120,7 +120,9 @@ public class RunContest extends javax.swing.JFrame {
                     output.writeObject(sha512Hex(username));
                     output.flush(); // flush output to client
                     String title = (String) input.readObject(); // read new message
-                    if(title.equals(sha512Hex("No"))) throw new IOException();
+                    if (title.equals(sha512Hex("No"))) {
+                        throw new IOException();
+                    }
 //                    System.out.println("Run Contest 1");
                     String message = (String) input.readObject(); // read new message
 //                    System.out.println("Run Contest 2");
@@ -139,7 +141,7 @@ public class RunContest extends javax.swing.JFrame {
                     }
                 }
             }
-
+            
         }
 
         /**
@@ -150,7 +152,7 @@ public class RunContest extends javax.swing.JFrame {
         public void run() {
             try {
                 serverSocketNotification = new ServerSocket(4772, 100);
-
+                
                 while (true) {
                     try {
                         Socket connection = serverSocketNotification.accept();
@@ -159,14 +161,52 @@ public class RunContest extends javax.swing.JFrame {
                         Logger.getLogger(JudgeApplication.class.getName()).log(Level.SEVERE, null, ex);
                     }
                 }
-
+                
             } catch (IOException ex) {
                 Logger.getLogger(JudgeApplication.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
+        
+    }
+    
+    void updateContestComponents(){
+        //contest.passedTime++;/// here taken update from port should be implemented
+                if (!role.equals("Judge") || !jMenuItemContestStartStop.getText().equals("Start Contest")) {
+                    if (!loadUpdate()) {
+                        contestStop = true;
+                    }
+                    if (contestStop) {
+                        loadContest();
+                    }
+                }
+
+//                if (!loaded) {
+//                    loadContest();
+//                }
+                Date now = new Date();
+                if (contestStop) {
+                    jLabelTimePassed.setText("Stopped");
+                } else {
+                    jLabelTimePassed.setText(String.format("%02d:%02d:%02d", contest.passedTime / 3600, (contest.passedTime / 60) % 60, contest.passedTime % 60));
+                }
+                jLabelDate.setText(String.format("%02d/%02d/%04d", now.getDate(), now.getMonth(), 1900 + now.getYear()));
+                jLabelWeekDay.setText(String.format("%10s,", days[now.getDay()]));
+                int hh = now.getHours();
+                String AMPM;
+                if (hh < 12) {
+                    AMPM = "AM";
+                } else {
+                    AMPM = "PM";
+                }
+                if (hh == 0) {
+                    hh = 12;
+                } else if (hh > 12) {
+                    hh -= 12;
+                }
+                jLabelTime.setText(String.format("%02d:%02d:%02d %2s", hh, now.getMinutes(), now.getSeconds(), AMPM));
 
     }
-
+    
     /**
      * Creates new form RunContest to submit solution, see rank list, submission
      * queue. It also shows judge options for judge.
@@ -204,18 +244,19 @@ public class RunContest extends javax.swing.JFrame {
         } catch (UnknownHostException ex) {
             Logger.getLogger(RunContest.class.getName()).log(Level.SEVERE, null, ex);
         }
-
+        
         addWindowListener(new WindowAdapter() {
             @Override
             public void windowClosing(WindowEvent e) {
                 upperClass.setVisible(true);
                 setVisible(false);
                 if (role.equalsIgnoreCase("Judge")) {
+                    System.out.println("Entry 1.2");
                     judgeClass.destroyMe();
                 }
             }
         });
-
+        
         timer = new Timer(1000, new ActionListener() {
             /**
              * It updates date and times and contest time. It also loads contest
@@ -225,39 +266,12 @@ public class RunContest extends javax.swing.JFrame {
              */
             @Override
             public void actionPerformed(ActionEvent ae) {
-                //contest.passedTime++;/// here taken update from port should be implemented
-                if (!role.equals("Judge") || !jMenuItemContestStartStop.getText().equals("Start Contest")) {
-                    if(!loadUpdate()) contestStop = true;
-                    if(contestStop) loadContest();
-                }
-
-//                if (!loaded) {
-//                    loadContest();
-//                }
-
-                Date now = new Date();
-                if(contestStop)jLabelTimePassed.setText("Stopped");
-                else jLabelTimePassed.setText(String.format("%02d:%02d:%02d", contest.passedTime / 3600, (contest.passedTime / 60) % 60, contest.passedTime % 60));
-                jLabelDate.setText(String.format("%02d/%02d/%04d", now.getDate(), now.getMonth(), 1900 + now.getYear()));
-                jLabelWeekDay.setText(String.format("%10s,", days[now.getDay()]));
-                int hh = now.getHours();
-                String AMPM;
-                if (hh < 12) {
-                    AMPM = "AM";
-                } else {
-                    AMPM = "PM";
-                }
-                if (hh == 0) {
-                    hh = 12;
-                } else if (hh > 12) {
-                    hh -= 12;
-                }
-                jLabelTime.setText(String.format("%02d:%02d:%02d %2s", hh, now.getMinutes(), now.getSeconds(), AMPM));
+                updateContestComponents();
             }
         });
         timer.setRepeats(true);
         timer.start();
-
+        updateContestComponents();
         //adjust screen
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
         double width = screenSize.getWidth();
@@ -265,14 +279,14 @@ public class RunContest extends javax.swing.JFrame {
         setLocation((int) Math.max((width - getWidth()) / 2, 0), (int) Math.max((height - getHeight()) / 2, 0));
         new Notification();
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
-
+        setVisible(true);
     }
-
+    
     /**
      * It loads problem names and other contest information if available.
      */
     void loadContest() {
-
+        
         ObjectOutputStream output = null; // output stream to server
         ObjectInputStream input; // input stream from server
 
@@ -284,7 +298,7 @@ public class RunContest extends javax.swing.JFrame {
             output.flush(); // flush output buffer to send header information
 
             input = new ObjectInputStream(client.getInputStream());
-
+            
             output.writeObject(username);
             output.writeObject(pass);
             output.writeObject(sha512Hex(role));
@@ -318,11 +332,17 @@ public class RunContest extends javax.swing.JFrame {
 
         //loadUpdate();
     }
-
+    
     void loadContestElements() {
         jComboBoxLanguage.removeAllItems();
         jComboBoxProblemName.removeAllItems();
-        if(contest == null) return;
+        if (contest == null) {
+            jComboBoxProblemName.setEnabled(false);
+            jComboBoxProblemName.setEnabled(false);
+            return;
+        }
+        jComboBoxProblemName.setEnabled(true);
+            jComboBoxProblemName.setEnabled(true);
         for (int i = 0; i < contest.numberOfProblems; i++) {
             jComboBoxProblemName.addItem(contest.problems[i].problemName);
         }
@@ -338,35 +358,39 @@ public class RunContest extends javax.swing.JFrame {
      * It updates contest passed time.
      */
     boolean loadUpdate() {
-
+        
         ObjectOutputStream output; // output stream to server
         ObjectInputStream input; // input stream from server
 
         try {
             Socket client = new Socket();
             client.connect(new InetSocketAddress(InetAddress.getByName(judgeIP), 4444), 500);
-
+            
             output = new ObjectOutputStream(client.getOutputStream());
             output.flush(); // flush output buffer to send header information
             input = new ObjectInputStream(client.getInputStream());
-
+            
             output.writeObject(username);
             output.writeObject(pass);
-
+            
             String response = (String) input.readObject();
             if (response.equals(Hashing.sha512Hex(username))) {
                 output.writeObject(Hashing.sha512Hex("Anything"));
                 String timePassed = decrypt((String) input.readObject(), pass);
                 contest.passedTime = Long.parseLong(timePassed);
-                if(contestStop) loadContest();
+                if (contestStop) {
+                    loadContest();
+                }
                 contestStop = false;
             } else {
-                if(!contestStop) loadContest();
+                if (!contestStop) {
+                    loadContest();
+                }
                 contestStop = true;
                 
             }
             output.flush();
-
+            
             output.close(); // close output stream
             input.close(); // close input stream
             client.close(); // close socket
@@ -672,7 +696,7 @@ public class RunContest extends javax.swing.JFrame {
      */
     private void jButtonSubmissionsActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonSubmissionsActionPerformed
         // TODO add your handling code here:
-        new ShowSubmissions(contest, this, username, pass, judgeIP,role).setVisible(true);
+        new ShowSubmissions(contest, this, username, pass, judgeIP, role).setVisible(true);
     }//GEN-LAST:event_jButtonSubmissionsActionPerformed
 
     /**
@@ -685,7 +709,7 @@ public class RunContest extends javax.swing.JFrame {
         int retrival;
         jFileChooser.setFileSelectionMode(javax.swing.JFileChooser.FILES_ONLY);
         retrival = jFileChooser.showOpenDialog(this);
-
+        
         if (retrival == JFileChooser.APPROVE_OPTION) {
             try {
                 File fileName = jFileChooser.getSelectedFile();
@@ -712,7 +736,7 @@ public class RunContest extends javax.swing.JFrame {
                 ret += line + "\n";
                 line = reader.readLine();
             }
-
+            
         } catch (FileNotFoundException ex) {
             Logger.getLogger(RunContest.class.getName()).log(Level.SEVERE, null, ex);
         } catch (IOException ex) {
@@ -730,7 +754,7 @@ public class RunContest extends javax.swing.JFrame {
     private void jButtonSubmitActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonSubmitActionPerformed
         File fileToSubmit = new File(jTextFieldFilePath.getText());
         long fourMB = 4194304;
-        if(fileToSubmit.length()>fourMB){
+        if (fileToSubmit.length() > fourMB) {
             JOptionPane.showMessageDialog(this, "Submission Failed!\nFile Size Too Large(>4MB)!", "File Size Too Large!", JOptionPane.ERROR_MESSAGE);
             return;
         }
@@ -745,12 +769,11 @@ public class RunContest extends javax.swing.JFrame {
         try {
             Socket client = new Socket();
             client.connect(new InetSocketAddress(InetAddress.getByName(judgeIP), 3626), 500);
-
+            
             output = new ObjectOutputStream(client.getOutputStream());
             output.flush(); // flush output buffer to send header information
 
             input = new ObjectInputStream(client.getInputStream());
-            
             
             output.writeObject(username); // read new message
             output.writeObject(pass); // read new message
@@ -763,12 +786,12 @@ public class RunContest extends javax.swing.JFrame {
             if (!response.equals(sha512Hex("Yes"))) {
                 throw new IOException();
             }
-
+            
             output.close(); // close output stream
             input.close(); // close input stream
             client.close(); // close socket
             /// go to submission page
-            new ShowSubmissions(contest, this, username, pass, judgeIP,role).setVisible(true);
+            new ShowSubmissions(contest, this, username, pass, judgeIP, role).setVisible(true);
         } catch (IOException ex) {
             JOptionPane.showMessageDialog(this, "Submission Failed!\nContest is stopped by the Judge.", "Submission Failed!", JOptionPane.ERROR_MESSAGE);
             Logger.getLogger(RunProgram.class.getName()).log(Level.SEVERE, null, ex);
@@ -785,10 +808,11 @@ public class RunContest extends javax.swing.JFrame {
     private void jButtonSaveAndExitActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonSaveAndExitActionPerformed
         // TODO add your handling code here:
         timer.stop();
-
+        
         setVisible(false);
         upperClass.upperClass.setVisible(true);
         if (role.equalsIgnoreCase("Judge")) {
+//            System.out.println("Entry 1.1");
             judgeClass.destroyMe();
         }
         upperClass.dispose();
@@ -824,10 +848,26 @@ public class RunContest extends javax.swing.JFrame {
     private void jButtonExitActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonExitActionPerformed
         // TODO add your handling code here:
         int response = JOptionPane.showConfirmDialog(this, "Are You Sure To Exit?\nAll unsaved data would be lost!", "Confirmation!", JOptionPane.INFORMATION_MESSAGE);
-        if(response != YES_OPTION) return;
+        if (response != YES_OPTION) {
+            return;
+        }
         System.exit(0);
     }//GEN-LAST:event_jButtonExitActionPerformed
-
+    
+    /**
+     * Sets text "Stop Contest" to the menu item in Judge Option.
+     */
+    public void setStopContest(){
+        jMenuItemContestStartStop.setText("Stop Contest");
+    }
+    
+    /**
+     * Sets text "Start Contest" to the menu item in Judge Option.
+     */
+    public void setStartContest(){
+        jMenuItemContestStartStop.setText("Start Contest");
+    }
+    
     /**
      * It takes the necessary steps to start or stop the contest. It is visible
      * to the judge only.
@@ -837,13 +877,16 @@ public class RunContest extends javax.swing.JFrame {
     private void jMenuItemContestStartStopActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItemContestStartStopActionPerformed
         // TODO add your handling code here:
         if (jMenuItemContestStartStop.getText().equalsIgnoreCase("Start Contest")) {
+            if(contest.passedTime>contest.contestDuration){
+                JOptionPane.showMessageDialog(this, "Opps!\nContest Time Is Already Exceeded The Contest Duration!\nIf You Want To Continue, Please Extend Contest Time First!", "Contest Time Exceeded!", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
             judgeClass.startContest();
             jButtonSubmit.setEnabled(true);
-            jMenuItemContestStartStop.setText("Stop Contest");
+
         } else {
             judgeClass.stopContest();
             jButtonSubmit.setEnabled(false);
-            jMenuItemContestStartStop.setText("Start Contest");
         }
     }//GEN-LAST:event_jMenuItemContestStartStopActionPerformed
 

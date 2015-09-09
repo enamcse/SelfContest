@@ -28,13 +28,13 @@ import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Vector;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.JOptionPane;
 import javax.swing.Timer;
 import static security.Encryption.decrypt;
 import static security.Encryption.encrypt;
@@ -68,7 +68,8 @@ public class JudgeApplication implements Runnable {
     ServerSocket serverSocketLoginRequest;
     ServerSocket serverSocketContestInfo;
     ServerSocket serverSocketSubmissionReceive;
-
+    
+    public RunContest judgeGUI=null;
     private UpdateNews updateNews;
     private SubmissionRecieve submissionRecieve;
     private LoginRequest loginRequest;
@@ -91,7 +92,6 @@ public class JudgeApplication implements Runnable {
         loadContest(new File(filePath));
         this.saveFile = filePath;
         runningThread[0] = 0;
-
         /// max number of parallel submission 
         limitThread = 1;
 
@@ -101,6 +101,7 @@ public class JudgeApplication implements Runnable {
                 if(contestRunning)contest.passedTime++;
                 if(contestRunning&&contest.passedTime>contest.contestDuration){
                     stopContest();
+                    JOptionPane.showMessageDialog(judgeGUI, "Congratulations!\nContest Has Been Ended Successfully!\nYou Can Resume It By Extending Contest Time!", "Contest Time Finished!", JOptionPane.ERROR_MESSAGE);
                 }
             }
         });
@@ -543,6 +544,7 @@ public class JudgeApplication implements Runnable {
 
                 while (judgeRunning) {
                     try {
+//                        System.out.println("Why? "+new Date());
                         Socket connection = serverSocketSubmissionReceive.accept();
                         new SubmissionEntry(connection);
 
@@ -552,6 +554,7 @@ public class JudgeApplication implements Runnable {
                 }
                 serverSocketSubmissionReceive.close();
             } catch (IOException ex) {
+//                System.out.println("Because "+new Date());
                 Logger.getLogger(JudgeApplication.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
@@ -637,6 +640,7 @@ public class JudgeApplication implements Runnable {
         submissionRecieve = new SubmissionRecieve();
         timer.start();
         runSubmission.start();
+        judgeGUI.setStopContest();
     }
     
     /**
@@ -647,6 +651,7 @@ public class JudgeApplication implements Runnable {
         saveContest();
         stopTakingSubmission();
         contestRunning = false;
+        judgeGUI.setStartContest();
         timer.stop();
         if(contest.passedTime<contest.contestDuration){
             runSubmission.stop();

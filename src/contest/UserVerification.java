@@ -40,24 +40,27 @@ import static security.Hashing.sha512Hex;
 
 /**
  * User verification is done here. If user could pass this process, he would
- * pushed to the next processes, otherwise not. The user verification is done
- * on the basis of user data from database.
+ * pushed to the next processes, otherwise not. The user verification is done on
+ * the basis of user data from database.
+ *
  * @version 1.0
  * @author Enamul
  */
 public class UserVerification extends javax.swing.JFrame {
+
     //These variables are fully related to database which are self-explanatory
+
     public static String dataBaseUrl = "jdbc:mysql://";
     public static String dataBaseName = "contest";
     public static String dataBaseTable = "users";
 
     /**
-     * Creates new form userVerification. It ensures the GUI prompts on the center
-     * of the screen.
+     * Creates new form userVerification. It ensures the GUI prompts on the
+     * center of the screen.
      */
     public UserVerification() {
         initComponents();
-
+        
         jLabelInvalidUserPass.setVisible(false);
 
         //adjust screen
@@ -103,6 +106,11 @@ public class UserVerification extends javax.swing.JFrame {
         jLabel3.setText("Role:");
 
         jComboBoxRole.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "Contestant", "Judge" }));
+        jComboBoxRole.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jComboBoxRoleActionPerformed(evt);
+            }
+        });
 
         jLabel4.setText("Judge IP:");
 
@@ -233,20 +241,24 @@ public class UserVerification extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
     /**
      * destroys the frame and close all its works.
+     *
      * @param evt action event of clicking exit button
      */
     private void jButtonExitActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonExitActionPerformed
         // TODO add your handling code here:
         int response = JOptionPane.showConfirmDialog(this, "Are You Sure To Exit?\nAll unsaved data would be lost!", "Confirmation!", JOptionPane.INFORMATION_MESSAGE);
-        if(response != YES_OPTION) return;
+        if (response != YES_OPTION) {
+            return;
+        }
         System.exit(0);
     }//GEN-LAST:event_jButtonExitActionPerformed
     /**
-     * If user access as 'Judge', it verifies user from getting data from database.
-     * if user access as 'Contestant', then it request the corresponding 'Judge IP'
-     * for approving 'authorization'. For this, it uses port 4949.
-     * Note: Now, it is in debugging mode. So, it approves as judge though it has
-     * not verified by database.
+     * If user access as 'Judge', it verifies user from getting data from
+     * database. if user access as 'Contestant', then it request the
+     * corresponding 'Judge IP' for approving 'authorization'. For this, it uses
+     * port 4949. Note: Now, it is in debugging mode. So, it approves as judge
+     * though it has not verified by database.
+     *
      * @param evt action event of clicking Submit button
      */
     private void jButtonSubmitActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonSubmitActionPerformed
@@ -260,7 +272,7 @@ public class UserVerification extends javax.swing.JFrame {
             // TODO add your handling code here:
             
             String query = "select * from " + dataBaseTable + " where username = ? and password = ? and role = ?";
-            
+
 //            if (jTextFieldJudgeIP.getText().equals(InetAddress.getLocalHost().getHostAddress())||jTextFieldJudgeIP.getText().equals("localhost")) {
             if (jComboBoxRole.getSelectedItem().equals("Judge")) {
                 success = true;
@@ -283,14 +295,16 @@ public class UserVerification extends javax.swing.JFrame {
                 ObjectInputStream input; // input stream from server
                 String message = "";
                 String host = jTextFieldJudgeIP.getText();
-
+                
                 try {
                     
                     System.out.println("host = " + host);
                     Socket client = new Socket();
-                    client.connect(new InetSocketAddress(host, 4949),1000);
+                    client.connect(new InetSocketAddress(host, 4949), 1000);
                     System.out.println("Its okay1");
-                    if(client.isClosed()) throw new IOException();
+                    if (client.isClosed()) {
+                        throw new IOException();
+                    }
                     System.out.println("Its okay2");
                     output = new ObjectOutputStream(client.getOutputStream());
                     output.flush(); // flush output buffer to send header information
@@ -307,31 +321,33 @@ public class UserVerification extends javax.swing.JFrame {
                     input.close(); // close input stream
                     client.close(); // close socket
 
-                } catch (SocketTimeoutException ex){
-                    JOptionPane.showMessageDialog(this, "There is no server running on IP address: "+host, "Login Failed!", JOptionPane.ERROR_MESSAGE);
-                }catch (IOException | ClassNotFoundException ex) {
+                } catch (SocketTimeoutException ex) {
+                    JOptionPane.showMessageDialog(this, "There is no server running on IP address: " + host, "Login Failed!", JOptionPane.ERROR_MESSAGE);
+                } catch (IOException | ClassNotFoundException ex) {
                     JOptionPane.showMessageDialog(this, "Judge restricted access.", "Login Failed!", JOptionPane.ERROR_MESSAGE);
 //                    Logger.getLogger(RunProgram.class.getName()).log(Level.SEVERE, null, ex);
-                } 
+                }                
             }
 //            System.out.println(" ? = "+success);
             
-
         } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | SQLException ex) {
 //            java.util.logging.Logger.getLogger(ShowSubmissions.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } 
+        }        
         
         if (success) {
-                setVisible(false);
-                new UserInterface(username, Hashing.sha512Hex(password),role, this, jTextFieldJudgeIP.getText());
-            } else {
-                jLabelInvalidUserPass.setVisible(true);
-            }
+            setVisible(false);
+            new UserInterface(username, Hashing.sha512Hex(password), role, this, jTextFieldJudgeIP.getText());
+        } else {
+            jLabelInvalidUserPass.setVisible(true);
+        }
     }//GEN-LAST:event_jButtonSubmitActionPerformed
 
     /**
-     * User pressed enter after giving password instead of pressing submit button.
-     * @see private void jButtonSubmitActionPerformed(java.awt.event.ActionEvent evt);
+     * User pressed enter after giving password instead of pressing submit
+     * button.
+     *
+     * @see private void jButtonSubmitActionPerformed(java.awt.event.ActionEvent
+     * evt);
      * @param evt action event of pressing enter in password field.
      */
     private void jPasswordFieldPassActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jPasswordFieldPassActionPerformed
@@ -340,8 +356,11 @@ public class UserVerification extends javax.swing.JFrame {
     }//GEN-LAST:event_jPasswordFieldPassActionPerformed
 
     /**
-     * User pressed enter after giving 'Judge IP' instead of pressing submit button.
-     * @see private void jButtonSubmitActionPerformed(java.awt.event.ActionEvent evt);
+     * User pressed enter after giving 'Judge IP' instead of pressing submit
+     * button.
+     *
+     * @see private void jButtonSubmitActionPerformed(java.awt.event.ActionEvent
+     * evt);
      * @param evt action event of pressing enter in Judge IP field.
      */
     private void jTextFieldJudgeIPActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jTextFieldJudgeIPActionPerformed
@@ -349,9 +368,22 @@ public class UserVerification extends javax.swing.JFrame {
         jButtonSubmitActionPerformed(evt);
     }//GEN-LAST:event_jTextFieldJudgeIPActionPerformed
 
+    private void jComboBoxRoleActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jComboBoxRoleActionPerformed
+        // TODO add your handling code here:
+        if (jComboBoxRole.getSelectedItem().equals("Judge")) {
+            jTextFieldJudgeIP.setEnabled(false);
+            jTextFieldJudgeIP.setText("localhost");
+        } else {
+            jTextFieldJudgeIP.setEnabled(true);
+            jTextFieldJudgeIP.setText("10.100.32.253");
+        }
+        
+    }//GEN-LAST:event_jComboBoxRoleActionPerformed
+
     /**
-     * This function sets the look and feel and opens the user  verification
+     * This function sets the look and feel and opens the user verification
      * process with necessary GUI.
+     *
      * @param args the command line arguments
      */
     public static void main(String args[]) {
