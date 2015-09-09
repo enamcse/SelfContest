@@ -79,9 +79,9 @@ public class CodeRun extends Thread implements RunInCmd {
         runtimeError = 0;
         
         try {
-            System.out.println("fileexe = " + fileEXE.toString());
-            System.out.println("input = " + fileSTDIN.toString());
-            System.out.println("output = " + fileSTDOUT.toString());
+//            System.out.println("fileexe = " + fileEXE.toString());
+//            System.out.println("input = " + fileSTDIN.toString());
+//            System.out.println("output = " + fileSTDOUT.toString());
             pr = cmdRun(String.format("cmd /c \"\"" + fileEXE.toString() + "\"<\"" + fileSTDIN.toString() + "\">\"" + fileSTDOUT.toString() + "\"\""));
             
         } catch (IOException ex) {

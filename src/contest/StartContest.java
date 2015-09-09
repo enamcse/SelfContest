@@ -19,25 +19,45 @@ import java.awt.Toolkit;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.File;
+import static java.lang.Thread.sleep;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
+import static javax.swing.JOptionPane.NO_OPTION;
+import static javax.swing.JOptionPane.YES_OPTION;
 import javax.swing.SwingUtilities;
+import static security.Hashing.sha512Hex;
 
 /**
- *
+ * It gives the opportunity to browse files and choose the contest file when
+ * the Judge enters in the contest environment.
+ * @since 0.1
+ * @version 1.0
  * @author Enamul
  */
 public class StartContest extends javax.swing.JFrame {
     UserInterface upperClass;
+    JudgeApplication lowerClass;
     String username;
+    String role;
+    String judgeIP;
+    private Thread lowerClassThread;
     /**
-     * Creates new form StartContest
+     * Creates new form StartContest to choose the contest configuration file.
+     * @param upper instance of the parent class
+     * @param username the username of judge
+     * @param role judge or contestant, but @since 1.0, contestants has no access
+     * in it.
+     * @param judgeIP it is the IPv4 address of judge. may be localhost.
      */
-    public StartContest(UserInterface upper, String username) {
+    public StartContest(UserInterface upper, String username, String role, String judgeIP) {
         super("Contest Path");
         initComponents();
         this.upperClass = upper;
+        this.judgeIP = judgeIP;
         this.username = username;
+        this.role = role;
         addWindowListener(new WindowAdapter() {
             @Override
             public void windowClosing(WindowEvent e) {
@@ -55,6 +75,19 @@ public class StartContest extends javax.swing.JFrame {
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
     }
     
+    /**
+     * It makes the parent form visible and this frame invisible.
+     */
+    public void makeUpperVisible(){
+        upperClass.setVisible(true);
+        setVisible(false);
+    }
+    
+    /**
+     * It changes look and feel of the form.
+     * @deprecated As it is not implemented correctly.
+     * @param name name of the look and feel.
+     */
     void changeLookAndFeel(String name){
         try {
             for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
@@ -86,6 +119,7 @@ public class StartContest extends javax.swing.JFrame {
         jLabel1 = new javax.swing.JLabel();
         jButtonSubmit = new javax.swing.JButton();
         jButtonExit = new javax.swing.JButton();
+        jButtonBack = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -95,6 +129,8 @@ public class StartContest extends javax.swing.JFrame {
                 jButtonBrowseActionPerformed(evt);
             }
         });
+
+        jTextFieldFilePath.setText("C:\\Users\\Enamul\\Desktop\\Contest\\Cont4.contest");
 
         jLabel1.setText("Contest Path:");
 
@@ -112,22 +148,31 @@ public class StartContest extends javax.swing.JFrame {
             }
         });
 
+        jButtonBack.setText("Back");
+        jButtonBack.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButtonBackActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                    .addComponent(jButtonBack, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(jLabel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
-                        .addContainerGap()
-                        .addComponent(jLabel1)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(jTextFieldFilePath, javax.swing.GroupLayout.PREFERRED_SIZE, 325, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(jButtonBrowse)
                         .addGap(0, 0, Short.MAX_VALUE))
                     .addGroup(layout.createSequentialGroup()
-                        .addGap(211, 211, 211)
+                        .addGap(124, 124, 124)
                         .addComponent(jButtonSubmit)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                         .addComponent(jButtonExit, javax.swing.GroupLayout.PREFERRED_SIZE, 75, javax.swing.GroupLayout.PREFERRED_SIZE)))
@@ -144,13 +189,19 @@ public class StartContest extends javax.swing.JFrame {
                 .addGap(18, 18, 18)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jButtonSubmit)
-                    .addComponent(jButtonExit))
+                    .addComponent(jButtonExit)
+                    .addComponent(jButtonBack))
                 .addContainerGap(29, Short.MAX_VALUE))
         );
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
-
+    
+    /**
+     * It gives the opportunity to browse and choose a file. It is the contest
+     * setting file which must have extension `.contest`.
+     * @param evt the action event of clicking Browse button.
+     */
     private void jButtonBrowseActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonBrowseActionPerformed
         // TODO add your handling code here:
         int retrival;
@@ -171,54 +222,86 @@ public class StartContest extends javax.swing.JFrame {
         }
 //        changeLookAndFeel("Nimbus");
     }//GEN-LAST:event_jButtonBrowseActionPerformed
-
+    
+    /**
+     * It initiates the Judge server as well as enters in the contest environment
+     * as like other contestants to give a feel like contestant.
+     * @param evt action event of clicking Submit button.
+     */
     private void jButtonSubmitActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonSubmitActionPerformed
         // TODO add your handling code here:
-        new RunContest(this,jTextFieldFilePath.getText(), username).setVisible(true);
+        lowerClass = new JudgeApplication(jTextFieldFilePath.getText());
+        
+//        System.out.println("What do you think");
+//        try {
+//            sleep(1000);
+//        } catch (InterruptedException ex) {
+//            Logger.getLogger(StartContest.class.getName()).log(Level.SEVERE, null, ex);
+//        }
+        
+        new RunContest(upperClass, username, sha512Hex("localhost"), role, lowerClass, judgeIP).setVisible(true);
         setVisible(false);
     }//GEN-LAST:event_jButtonSubmitActionPerformed
-
+    
+    /**
+     * It results directly exit from the contest software.
+     * @param evt action event of clicking exit button.
+     */
     private void jButtonExitActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonExitActionPerformed
         // TODO add your handling code here:
+        int response = JOptionPane.showConfirmDialog(this, "Are You Sure To Exit?\nAll unsaved data would be lost!", "Confirmation!", JOptionPane.INFORMATION_MESSAGE);
+        if(response != YES_OPTION) return;
         System.exit(0);
     }//GEN-LAST:event_jButtonExitActionPerformed
-
+    
     /**
-     * @param args the command line arguments
+     * It brings to the parent form and destroy this form.
+     * @param evt action event of clicking Back button.
      */
-    public static void main(String args[]) {
-        /* Set the Nimbus look and feel */
-        //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
-        /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
-         * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
-         */
-        try {
-            for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
-                if ("Nimbus".equals(info.getName())) {
-                    javax.swing.UIManager.setLookAndFeel(info.getClassName());
-                    break;
-                }
-            }
-        } catch (ClassNotFoundException ex) {
-            java.util.logging.Logger.getLogger(StartContest.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (InstantiationException ex) {
-            java.util.logging.Logger.getLogger(StartContest.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (IllegalAccessException ex) {
-            java.util.logging.Logger.getLogger(StartContest.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (javax.swing.UnsupportedLookAndFeelException ex) {
-            java.util.logging.Logger.getLogger(StartContest.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        }
-        //</editor-fold>
+    private void jButtonBackActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonBackActionPerformed
+        // TODO add your handling code here:
+        setVisible(false);
+        upperClass.setVisible(true);
+        dispose();
+    }//GEN-LAST:event_jButtonBackActionPerformed
 
-        /* Create and display the form */
-        java.awt.EventQueue.invokeLater(new Runnable() {
-            public void run() {
-//                new StartContest().setVisible(true);
-            }
-        });
-    }
+//    /**
+//     * @param args the command line arguments
+//     */
+//    public static void main(String args[]) {
+//        /* Set the Nimbus look and feel */
+//        //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
+//        /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
+//         * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
+//         */
+//        try {
+//            for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
+//                if ("Nimbus".equals(info.getName())) {
+//                    javax.swing.UIManager.setLookAndFeel(info.getClassName());
+//                    break;
+//                }
+//            }
+//        } catch (ClassNotFoundException ex) {
+//            java.util.logging.Logger.getLogger(StartContest.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+//        } catch (InstantiationException ex) {
+//            java.util.logging.Logger.getLogger(StartContest.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+//        } catch (IllegalAccessException ex) {
+//            java.util.logging.Logger.getLogger(StartContest.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+//        } catch (javax.swing.UnsupportedLookAndFeelException ex) {
+//            java.util.logging.Logger.getLogger(StartContest.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+//        }
+//        //</editor-fold>
+//
+//        /* Create and display the form */
+//        java.awt.EventQueue.invokeLater(new Runnable() {
+//            public void run() {
+////                new StartContest().setVisible(true);
+//            }
+//        });
+//    }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton jButtonBack;
     private javax.swing.JButton jButtonBrowse;
     private javax.swing.JButton jButtonExit;
     private javax.swing.JButton jButtonSubmit;

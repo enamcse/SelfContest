@@ -18,25 +18,37 @@ import java.awt.Dimension;
 import java.awt.Toolkit;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import javax.swing.JOptionPane;
+import static javax.swing.JOptionPane.NO_OPTION;
+import static javax.swing.JOptionPane.YES_OPTION;
 
 /**
- *
+ * This class maintain whether user wants to access Judge contents or Contestant
+ * contents. Contestant would not get access to Judge contents.
+ * @version 1.0
  * @author Enamul
  */
 public class UserInterface extends javax.swing.JFrame {
 
     String username;
     String role;
+    String pass;
     UserVerification upperClass;
-
+    String judgeIP;
     /**
-     * Creates new form UserInterface
+     * Creates new form UserInterface for choosing which contents user wants to
+     * access.
+     * @param username handle of the user
+     * @param role Contestant or Judge
+     * @param upper instance of upper frame
+     * @param judgeIP Judge IP
      */
-    public UserInterface(String username, String role, UserVerification upper) {
+    public UserInterface(String username, String pass, String role, UserVerification upper, String judgeIP) {
         super("Contest Manger");
         initComponents();
-
+        this.judgeIP = judgeIP;
         this.upperClass = upper;
+        this.pass = pass;
 
         addWindowListener(new WindowAdapter() {
             @Override
@@ -45,11 +57,11 @@ public class UserInterface extends javax.swing.JFrame {
                 setVisible(false);
             }
         });
-        
-        if(!role.equalsIgnoreCase("judge")){
+
+        if (!role.equalsIgnoreCase("judge")) {
             jButtonConfigure.setEnabled(false);
         }
-        
+
         //adjust screen
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
         double width = screenSize.getWidth();
@@ -59,6 +71,10 @@ public class UserInterface extends javax.swing.JFrame {
 
         this.username = username;
         this.role = role;
+        setVisible(true);
+        if (!role.equalsIgnoreCase("judge")) {
+            jButtonContestActionPerformed(null);
+        }
     }
 
     /**
@@ -73,6 +89,7 @@ public class UserInterface extends javax.swing.JFrame {
         jButtonConfigure = new javax.swing.JButton();
         jButtonContest = new javax.swing.JButton();
         jButtonExit = new javax.swing.JButton();
+        jButtonBack = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -97,90 +114,137 @@ public class UserInterface extends javax.swing.JFrame {
             }
         });
 
+        jButtonBack.setText("Back");
+        jButtonBack.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButtonBackActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
+                .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
-                        .addGap(96, 96, 96)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
                             .addComponent(jButtonConfigure, javax.swing.GroupLayout.PREFERRED_SIZE, 187, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(jButtonContest, javax.swing.GroupLayout.PREFERRED_SIZE, 187, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                    .addGroup(layout.createSequentialGroup()
-                        .addGap(148, 148, 148)
+                            .addComponent(jButtonContest, javax.swing.GroupLayout.PREFERRED_SIZE, 187, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addGap(0, 0, Short.MAX_VALUE))
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                        .addComponent(jButtonBack, javax.swing.GroupLayout.PREFERRED_SIZE, 84, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                         .addComponent(jButtonExit, javax.swing.GroupLayout.PREFERRED_SIZE, 84, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                .addContainerGap(117, Short.MAX_VALUE))
+                .addContainerGap())
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addGap(37, 37, 37)
+                .addContainerGap()
                 .addComponent(jButtonConfigure, javax.swing.GroupLayout.PREFERRED_SIZE, 89, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(30, 30, 30)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jButtonContest, javax.swing.GroupLayout.PREFERRED_SIZE, 87, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 43, Short.MAX_VALUE)
-                .addComponent(jButtonExit)
-                .addGap(31, 31, 31))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jButtonExit)
+                    .addComponent(jButtonBack))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
+    /**
+     * This would take user to contest environment. If user is a judge, he would
+     * be asked for contest file then it would lead to contest environment.
+     * @param evt  action event of clicking on Start Contest button
+     */
     private void jButtonContestActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonContestActionPerformed
         // TODO add your handling code here:
-        new StartContest(this,username).setVisible(true);
-        setVisible(false);
-    }//GEN-LAST:event_jButtonContestActionPerformed
+        if (role.equalsIgnoreCase("Judge")) {
+            new StartContest(this, username, role,judgeIP).setVisible(true);
+            setVisible(false);
+        }
+        else{
+            /// take input from judge.
+            setVisible(false);
+            new RunContest(this, username, pass, role, null, judgeIP).setVisible(true);
+        }
 
+    }//GEN-LAST:event_jButtonContestActionPerformed
+    
+    /**
+     * This would lead the user to modify, create, delete the contest content.
+     * Only Judges would be allowed to access this.
+     * @param evt action event of clicking on Configure Contest button
+     */
     private void jButtonConfigureActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonConfigureActionPerformed
         // TODO add your handling code here:
-        new ConfigureContest(this,username).setVisible(true);
+        new ConfigureContest(this, username).setVisible(true);
         setVisible(false);
     }//GEN-LAST:event_jButtonConfigureActionPerformed
-
+    
+    /**
+     * destroys the frame and close all its works.
+     * @param evt action event of clicking exit button.
+     */
     private void jButtonExitActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonExitActionPerformed
         // TODO add your handling code here:
+        int response = JOptionPane.showConfirmDialog(this, "Are You Sure To Exit?\nAll unsaved data would be lost!", "Confirmation!", JOptionPane.INFORMATION_MESSAGE);
+        if(response != YES_OPTION) return;
         System.exit(0);
     }//GEN-LAST:event_jButtonExitActionPerformed
-
+    
     /**
-     * @param args the command line arguments
+     * Brings to the the Log In Page having Log Out.
+     * @param evt action event of clicking Back button.
      */
-    public static void main(String args[]) {
-        /* Set the Nimbus look and feel */
-        //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
-        /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
-         * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
-         */
-        try {
-            for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
-                if ("Windows".equals(info.getName())) {
-                    javax.swing.UIManager.setLookAndFeel(info.getClassName());
-                    break;
-                }
-            }
-        } catch (ClassNotFoundException ex) {
-            java.util.logging.Logger.getLogger(UserInterface.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (InstantiationException ex) {
-            java.util.logging.Logger.getLogger(UserInterface.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (IllegalAccessException ex) {
-            java.util.logging.Logger.getLogger(UserInterface.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (javax.swing.UnsupportedLookAndFeelException ex) {
-            java.util.logging.Logger.getLogger(UserInterface.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        }
-        //</editor-fold>
+    private void jButtonBackActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonBackActionPerformed
+        // TODO add your handling code here:
+        upperClass.setVisible(true);
+        setVisible(true);
+        dispose();
+    }//GEN-LAST:event_jButtonBackActionPerformed
 
-        /* Create and display the form */
-        java.awt.EventQueue.invokeLater(new Runnable() {
-            public void run() {
-//                new UserInterface().setVisible(true);
-            }
-        });
-    }
+//    /**
+//     * @param args the command line arguments
+//     */
+//    public static void main(String args[]) {
+//        /* Set the Nimbus look and feel */
+//        //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
+//        /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
+//         * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
+//         */
+//        try {
+//            for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
+//                if ("Windows".equals(info.getName())) {
+//                    javax.swing.UIManager.setLookAndFeel(info.getClassName());
+//                    break;
+//                }
+//            }
+//        } catch (ClassNotFoundException ex) {
+//            java.util.logging.Logger.getLogger(UserInterface.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+//        } catch (InstantiationException ex) {
+//            java.util.logging.Logger.getLogger(UserInterface.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+//        } catch (IllegalAccessException ex) {
+//            java.util.logging.Logger.getLogger(UserInterface.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+//        } catch (javax.swing.UnsupportedLookAndFeelException ex) {
+//            java.util.logging.Logger.getLogger(UserInterface.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+//        }
+//        //</editor-fold>
+//
+//        /* Create and display the form */
+//        java.awt.EventQueue.invokeLater(new Runnable() {
+//            public void run() {
+////                new UserInterface().setVisible(true);
+//            }
+//        });
+//    }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton jButtonBack;
     private javax.swing.JButton jButtonConfigure;
     private javax.swing.JButton jButtonContest;
     private javax.swing.JButton jButtonExit;

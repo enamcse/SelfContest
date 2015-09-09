@@ -15,12 +15,17 @@
 package contest;
 
 /**
- *
+ * This is a software for managing programming contest. Everything should 
+ * have a starting point. This class is the starting point of this software.
+ * As it is a starting point, I kept this class very simple.
+ * @version 1.0
  * @author Enamul
  */
 public class Judging {
 
     /**
+     * This function is the starting point of the software. From this function
+     * only one function is called which ask for verifying user.
      * @param args the command line arguments
      */
     public static void main(String[] args) {

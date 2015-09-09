@@ -33,4 +33,15 @@ public class Problem implements Serializable {
     public String dataType;
     public int precision;
     public int timeLimit;
+    public Problem(){
+        dataType = "String";
+        problemName = "";
+        folderPath = new File("");
+        inputExtension = "";
+        outputExtension = "";
+        precision = 0;
+        inputFile = new File("");
+        outputFile = new File("");
+        oneFile = true;
+    }
 }

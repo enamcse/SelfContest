@@ -20,33 +20,39 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.File;
 import javax.swing.JFileChooser;
+import javax.swing.JOptionPane;
+import static javax.swing.JOptionPane.NO_OPTION;
+import static javax.swing.JOptionPane.YES_OPTION;
 import javax.swing.JTextField;
 
 /**
- *
+ * Sets the specifications such as judge data, problem name, time limit, precision
+ * of a specific problem.
+ * @since 0.1
+ * @version 1.0
  * @author Enamul
  */
-public class ConfigureProblem extends javax.swing.JFrame {
+public class ConfigureProblem extends javax.swing.JDialog {
 
     ContestSetting upperClass;
     Problem currentProblem;
     File currentDirectory = new File("");
 
     /**
-     * Creates new form ConfigureProblem
+     * Creates new form ConfigureProblem to create or modify a specific problem's
+     * settings.
+     * @param upper instance of parent class.
+     * @param currentProblem instance of working problem.
      */
     public ConfigureProblem(ContestSetting upper, Problem currentProblem) {
-        super("Problem Setting");
+        super(upper,"Problem Setting");
         initComponents();
         this.upperClass = upper;
         this.currentProblem = currentProblem;
-        buttonGroup1.add(jRadioButtonOneFile);
-        buttonGroup1.add(jRadioButtonMultiFile);
-        buttonGroup2.add(jRadioButtonInput);
-        buttonGroup2.add(jRadioButtonOutput);
-        if (currentProblem.dataType == null) {
-            initializeProblem();
-        }
+        buttonGroupJudgeData.add(jRadioButtonOneFile);
+        buttonGroupJudgeData.add(jRadioButtonMultiFile);
+        buttonGroupSingleFileIO.add(jRadioButtonInput);
+        buttonGroupSingleFileIO.add(jRadioButtonOutput);
         initializeFrame();
         
         addWindowListener(new WindowAdapter() {
@@ -65,7 +71,9 @@ public class ConfigureProblem extends javax.swing.JFrame {
 
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
     }
-
+    /**
+     * Initialize the UI with the prior specifications.
+     */
     void initializeFrame() {
         jTextFieldProblemNo.setText(String.format("%d", this.currentProblem.problemNo));
         jTextFieldProblemName.setText(String.format("%s", this.currentProblem.problemName));
@@ -88,8 +96,6 @@ public class ConfigureProblem extends javax.swing.JFrame {
             currentProblem.outputExtension = "";
             jTextFieldInputExtension.setEnabled(false);
             jTextFieldOutputExtension.setEnabled(false);
-
-            
 
         } else {
             
@@ -124,7 +130,10 @@ public class ConfigureProblem extends javax.swing.JFrame {
             }
 
     }
-
+    /**
+     * Sets the initial values of a problem while creating first time.
+     * @deprecated from version 1.0, this work done in Problem constructor.
+     */
     void initializeProblem() {
         this.currentProblem.dataType = "String";
         this.currentProblem.problemName = "";
@@ -147,8 +156,8 @@ public class ConfigureProblem extends javax.swing.JFrame {
     private void initComponents() {
 
         fileChooser = new javax.swing.JFileChooser();
-        buttonGroup1 = new javax.swing.ButtonGroup();
-        buttonGroup2 = new javax.swing.ButtonGroup();
+        buttonGroupJudgeData = new javax.swing.ButtonGroup();
+        buttonGroupSingleFileIO = new javax.swing.ButtonGroup();
         jLabel1 = new javax.swing.JLabel();
         jLabel2 = new javax.swing.JLabel();
         jTextFieldProblemNo = new javax.swing.JTextField();
@@ -178,7 +187,8 @@ public class ConfigureProblem extends javax.swing.JFrame {
         jMenuFile = new javax.swing.JMenu();
         jMenuItemSaveAndBack = new javax.swing.JMenuItem();
 
-        setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
+        setModal(true);
 
         jLabel1.setText("Problem No:");
 
@@ -308,23 +318,26 @@ public class ConfigureProblem extends javax.swing.JFrame {
                                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                         .addComponent(jButtonBrowse))
                                     .addComponent(jTextFieldInputExtension, javax.swing.GroupLayout.PREFERRED_SIZE, 302, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addComponent(jTextFieldOutputExtension, javax.swing.GroupLayout.PREFERRED_SIZE, 302, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                                    .addComponent(jTextFieldOutputExtension, javax.swing.GroupLayout.PREFERRED_SIZE, 302, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                .addGap(0, 0, Short.MAX_VALUE))
                             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addComponent(jLabel6)
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
                                     .addGroup(layout.createSequentialGroup()
-                                        .addGap(10, 10, 10)
-                                        .addComponent(jLabel7)))
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addComponent(jTextFieldPrecision, javax.swing.GroupLayout.PREFERRED_SIZE, 302, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addComponent(jComboBoxDataType, javax.swing.GroupLayout.PREFERRED_SIZE, 302, javax.swing.GroupLayout.PREFERRED_SIZE))
-                                .addGap(73, 73, 73))
-                            .addGroup(layout.createSequentialGroup()
-                                .addGap(71, 71, 71)
-                                .addComponent(jLabel8)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(jTextFieldTimeLimit, javax.swing.GroupLayout.PREFERRED_SIZE, 302, javax.swing.GroupLayout.PREFERRED_SIZE))))
+                                        .addGap(0, 0, Short.MAX_VALUE)
+                                        .addComponent(jLabel8)
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                        .addComponent(jTextFieldTimeLimit, javax.swing.GroupLayout.PREFERRED_SIZE, 302, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                    .addGroup(layout.createSequentialGroup()
+                                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                            .addComponent(jLabel6)
+                                            .addGroup(layout.createSequentialGroup()
+                                                .addGap(10, 10, 10)
+                                                .addComponent(jLabel7)))
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                            .addComponent(jTextFieldPrecision, javax.swing.GroupLayout.PREFERRED_SIZE, 302, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                            .addComponent(jComboBoxDataType, javax.swing.GroupLayout.PREFERRED_SIZE, 302, javax.swing.GroupLayout.PREFERRED_SIZE))))
+                                .addGap(73, 73, 73))))
                     .addGroup(layout.createSequentialGroup()
                         .addGap(179, 179, 179)
                         .addComponent(jButtonSubmit, javax.swing.GroupLayout.PREFERRED_SIZE, 162, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -388,7 +401,10 @@ public class ConfigureProblem extends javax.swing.JFrame {
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
-
+    /**
+     * Saves the current settings of the problem and goes to parent frame.
+     * @param evt action event of clicking Save and Back button
+     */
     private void jButtonSubmitActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonSubmitActionPerformed
         // TODO add your handling code here:
 
@@ -408,7 +424,10 @@ public class ConfigureProblem extends javax.swing.JFrame {
         setVisible(false);
         upperClass.setVisible(true);
     }//GEN-LAST:event_jButtonSubmitActionPerformed
-
+    /**
+     * Opens a window to browse and choose a desired file or directory.
+     * @param current the selected file path would be set to this text field.
+     */
     private void browseFile(JTextField current) {
         if (currentDirectory != null) {
             if (currentDirectory.isDirectory()) {
@@ -426,7 +445,11 @@ public class ConfigureProblem extends javax.swing.JFrame {
             System.out.println("File access cancelled by user.");
         }
     }
-
+    
+    /**
+     * Take necessary steps to choose a file or directory.
+     * @param evt action event of clicking Browse button.
+     */
     private void jButtonBrowseActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonBrowseActionPerformed
         // TODO add your handling code here:
         if (jRadioButtonOneFile.isSelected()) {
@@ -445,12 +468,22 @@ public class ConfigureProblem extends javax.swing.JFrame {
             this.currentProblem.folderPath = new File(jTextFieldFilePath.getText());
         }
     }//GEN-LAST:event_jButtonBrowseActionPerformed
-
+    
+    /**
+     * User chose to save all settings and go to Contest setting.
+     * @see private void jButtonSubmitActionPerformed(java.awt.event.ActionEvent evt);
+     * @param evt action event of choosing menu item Save and Back.
+     */
     private void jMenuItemSaveAndBackActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItemSaveAndBackActionPerformed
         // TODO add your handling code here:
         jButtonSubmitActionPerformed(evt);
     }//GEN-LAST:event_jMenuItemSaveAndBackActionPerformed
-
+    
+    /**
+     * User chose to give judge Data in one file. Inputs would be in single file
+     * and output would be in another file.
+     * @param evt action event of clicking on Radio Button One File.
+     */
     private void jRadioButtonOneFileActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jRadioButtonOneFileActionPerformed
         // TODO add your handling code here:
         jRadioButtonInput.setEnabled(true);
@@ -480,7 +513,12 @@ public class ConfigureProblem extends javax.swing.JFrame {
         }
 
     }//GEN-LAST:event_jRadioButtonOneFileActionPerformed
-
+    
+    /**
+     * User chose to give judge Data in multiple file. Inputs would be in a folder
+     * and output would be in another folder.
+     * @param evt action event of clicking on Radio Button Multiple File.
+     */
     private void jRadioButtonMultiFileActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jRadioButtonMultiFileActionPerformed
         // TODO add your handling code here:
         jRadioButtonInput.setEnabled(false);
@@ -508,7 +546,13 @@ public class ConfigureProblem extends javax.swing.JFrame {
             jTextFieldPrecision.setText("");
         }
     }//GEN-LAST:event_jRadioButtonMultiFileActionPerformed
-
+    
+    /**
+     * User choose the data type of the output. Supported data types are String, 
+     * Integer, Double. Be careful to select Double or Integer. any character in
+     * input would lead to an exception.
+     * @param evt action event of choosing a data Type from combobox.
+     */
     private void jComboBoxDataTypeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jComboBoxDataTypeActionPerformed
         // TODO add your handling code here:
         if(currentProblem.dataType.equalsIgnoreCase("Double")){
@@ -518,50 +562,56 @@ public class ConfigureProblem extends javax.swing.JFrame {
             jTextFieldPrecision.setEnabled(false);
         }
     }//GEN-LAST:event_jComboBoxDataTypeActionPerformed
-
+    
+    /**
+     * User chose to exit discarding everything.
+     * @param evt action event of clicking Exit button.
+     */
     private void jButtonExitActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonExitActionPerformed
         // TODO add your handling code here:
+        int response = JOptionPane.showConfirmDialog(this, "Are You Sure To Exit?\nAll unsaved data would be lost!", "Confirmation!", JOptionPane.INFORMATION_MESSAGE);
+        if(response != YES_OPTION) return;
         System.exit(0);
     }//GEN-LAST:event_jButtonExitActionPerformed
 
-    /**
-     * @param args the command line arguments
-     */
-    public static void main(String args[]) {
-        /* Set the Nimbus look and feel */
-        //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
-        /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
-         * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
-         */
-        try {
-            for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
-                if ("Nimbus".equals(info.getName())) {
-                    javax.swing.UIManager.setLookAndFeel(info.getClassName());
-                    break;
-                }
-            }
-        } catch (ClassNotFoundException ex) {
-            java.util.logging.Logger.getLogger(ConfigureProblem.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (InstantiationException ex) {
-            java.util.logging.Logger.getLogger(ConfigureProblem.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (IllegalAccessException ex) {
-            java.util.logging.Logger.getLogger(ConfigureProblem.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (javax.swing.UnsupportedLookAndFeelException ex) {
-            java.util.logging.Logger.getLogger(ConfigureProblem.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        }
-        //</editor-fold>
-
-        /* Create and display the form */
-        java.awt.EventQueue.invokeLater(new Runnable() {
-            public void run() {
-//                new ConfigureProblem().setVisible(true);
-            }
-        });
-    }
+//    /**
+//     * @param args the command line arguments
+//     */
+//    public static void main(String args[]) {
+//        /* Set the Nimbus look and feel */
+//        //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
+//        /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
+//         * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
+//         */
+//        try {
+//            for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
+//                if ("Nimbus".equals(info.getName())) {
+//                    javax.swing.UIManager.setLookAndFeel(info.getClassName());
+//                    break;
+//                }
+//            }
+//        } catch (ClassNotFoundException ex) {
+//            java.util.logging.Logger.getLogger(ConfigureProblem.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+//        } catch (InstantiationException ex) {
+//            java.util.logging.Logger.getLogger(ConfigureProblem.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+//        } catch (IllegalAccessException ex) {
+//            java.util.logging.Logger.getLogger(ConfigureProblem.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+//        } catch (javax.swing.UnsupportedLookAndFeelException ex) {
+//            java.util.logging.Logger.getLogger(ConfigureProblem.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+//        }
+//        //</editor-fold>
+//
+//        /* Create and display the form */
+//        java.awt.EventQueue.invokeLater(new Runnable() {
+//            public void run() {
+////                new ConfigureProblem().setVisible(true);
+//            }
+//        });
+//    }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.ButtonGroup buttonGroup1;
-    private javax.swing.ButtonGroup buttonGroup2;
+    private javax.swing.ButtonGroup buttonGroupJudgeData;
+    private javax.swing.ButtonGroup buttonGroupSingleFileIO;
     private javax.swing.JFileChooser fileChooser;
     private javax.swing.JButton jButtonBrowse;
     private javax.swing.JButton jButtonExit;

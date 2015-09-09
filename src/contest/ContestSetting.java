@@ -29,37 +29,56 @@ import java.io.ObjectOutputStream;
 import java.util.Vector;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javafx.util.Pair;
 import javax.swing.JFileChooser;
+import static javax.swing.JFileChooser.FILES_ONLY;
 import javax.swing.JOptionPane;
+import static javax.swing.JOptionPane.ERROR_MESSAGE;
+import static javax.swing.JOptionPane.NO_OPTION;
 import static javax.swing.JOptionPane.YES_NO_OPTION;
 import static javax.swing.JOptionPane.YES_OPTION;
 import javax.swing.table.DefaultTableModel;
 
 /**
+ * It gives the opportunity to set problems with all their settings as well as
+ * the approved contestant list.
  *
+ * @version 1.0
  * @author Enamul
  */
 public class ContestSetting extends javax.swing.JFrame {
 
     NewContest upperClass;
+    boolean dontProceedAction;
     File saveFile;
-    DefaultTableModel model;
+    DefaultTableModel model;//contest problems model
     Contest contest;
-    boolean startup;
+    boolean initiatedContest; //already did some work for the contest.
+    boolean modifyingMode;
 
     /**
-     * Creates new form ContestSetting
+     * Creates new form ContestSetting to set contest problems, number of
+     * problems or load contest from a file.
+     *
+     * @param upper instance of parent frame.
+     * @param contest instance of current contest file
+     * @param filePath file path of the contest instance where it would be
+     * stored after creating or modifying the Contest object.
+     * @param configured false for creating contest and true for modifying
+     * existing one.
      */
     public ContestSetting(NewContest upper, Contest contest, String filePath, boolean configured) {
         super("Contest Problems");
         initComponents();
-        startup = false;
+        initiatedContest = false;
+        modifyingMode = configured;
         this.upperClass = upper;
         this.saveFile = new File(filePath);
-        for (int i = 1; i < 50; i++) {
+        for (int i = 1; i < 50; i++) {//allows to add upto 50 problems
             jComboBoxNoOfProblem.addItem(i);
         }
         this.contest = contest;
+        model = (DefaultTableModel) jTableProblems.getModel();
         if (configured) {
             loadValues();
         }
@@ -81,16 +100,28 @@ public class ContestSetting extends javax.swing.JFrame {
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
     }
 
+    /**
+     * If judge user opens it to modify an existing contest, it loads the
+     * components of the existing contest.
+     */
     void loadValues() {
+        dontProceedAction = true;
         jComboBoxNoOfProblem.setSelectedItem(contest.numberOfProblems);
+        dontProceedAction = false;
+
+        Long contestDuration = contest.contestDuration / 60;
+
+        jTextFieldHours.setText(String.format("%d", (contestDuration / 60)));
+        jTextFieldMinutes.setText(String.format("%d", (contestDuration % 60)));
+
         int row = contest.numberOfProblems;
-        model = (DefaultTableModel) jTableProblems.getModel();
         model.setRowCount(row);
         for (int i = 0; i < row; i++) {
             model.setValueAt(i + 1, i, 0);
 //            System.out.println(this.contest.problems+" now :"+i);
             model.setValueAt(this.contest.problems[i].problemName, i, 1);
         }
+        initiatedContest = true;
     }
 
     /**
@@ -104,7 +135,7 @@ public class ContestSetting extends javax.swing.JFrame {
 
         jFileChooser = new javax.swing.JFileChooser();
         jPanel1 = new javax.swing.JPanel();
-        jLabel2 = new javax.swing.JLabel();
+        jLabelNoOfProblem = new javax.swing.JLabel();
         jComboBoxNoOfProblem = new javax.swing.JComboBox();
         jScrollPane1 = new javax.swing.JScrollPane();
         jTableProblems = new javax.swing.JTable();
@@ -114,23 +145,24 @@ public class ContestSetting extends javax.swing.JFrame {
         jButtonBrowse = new javax.swing.JButton();
         jTextFieldFilePath = new javax.swing.JTextField();
         jLabel1 = new javax.swing.JLabel();
+        jLabelContestDuration = new javax.swing.JLabel();
+        jTextFieldHours = new javax.swing.JTextField();
+        jLabelHours = new javax.swing.JLabel();
+        jLabelMinutes = new javax.swing.JLabel();
+        jTextFieldMinutes = new javax.swing.JTextField();
         jLabel3 = new javax.swing.JLabel();
         jTextFieldFileLoad = new javax.swing.JTextField();
         jButtonBrowseLoad = new javax.swing.JButton();
         jButtonLoad = new javax.swing.JButton();
+        jButtonContestantList = new javax.swing.JButton();
         jMenuBar1 = new javax.swing.JMenuBar();
         jMenu1 = new javax.swing.JMenu();
-        jMenu2 = new javax.swing.JMenu();
+        jMenuItemExit = new javax.swing.JMenuItem();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
-        jLabel2.setText("Number of Problems: ");
+        jLabelNoOfProblem.setText("Number of Problems: ");
 
-        jComboBoxNoOfProblem.addItemListener(new java.awt.event.ItemListener() {
-            public void itemStateChanged(java.awt.event.ItemEvent evt) {
-                jComboBoxNoOfProblemItemStateChanged(evt);
-            }
-        });
         jComboBoxNoOfProblem.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 jComboBoxNoOfProblemActionPerformed(evt);
@@ -185,16 +217,22 @@ public class ContestSetting extends javax.swing.JFrame {
 
         jLabel1.setText("Save As Text:");
 
+        jLabelContestDuration.setText("Contest Duration:");
+
+        jTextFieldHours.setHorizontalAlignment(javax.swing.JTextField.TRAILING);
+        jTextFieldHours.setText("5");
+
+        jLabelHours.setText("Hours");
+
+        jLabelMinutes.setText("Minutes");
+
+        jTextFieldMinutes.setHorizontalAlignment(javax.swing.JTextField.TRAILING);
+        jTextFieldMinutes.setText("0");
+
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
         jPanel1Layout.setHorizontalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel1Layout.createSequentialGroup()
-                .addGap(115, 115, 115)
-                .addComponent(jLabel2)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jComboBoxNoOfProblem, javax.swing.GroupLayout.PREFERRED_SIZE, 56, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addComponent(jLabel1)
@@ -202,22 +240,44 @@ public class ContestSetting extends javax.swing.JFrame {
                 .addComponent(jTextFieldFilePath, javax.swing.GroupLayout.PREFERRED_SIZE, 298, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jButtonBrowse))
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
-                .addGroup(jPanel1Layout.createSequentialGroup()
-                    .addContainerGap()
-                    .addComponent(jButtonConfigureProblem)
-                    .addGap(50, 50, 50)
-                    .addComponent(jButtonSaveAndExit)
-                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 72, Short.MAX_VALUE)
-                    .addComponent(jButtonExit, javax.swing.GroupLayout.PREFERRED_SIZE, 75, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
+                .addGap(0, 0, Short.MAX_VALUE)
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                    .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addComponent(jButtonConfigureProblem)
+                        .addGap(50, 50, 50)
+                        .addComponent(jButtonSaveAndExit)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(jButtonExit, javax.swing.GroupLayout.PREFERRED_SIZE, 75, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
+            .addGroup(jPanel1Layout.createSequentialGroup()
+                .addComponent(jLabelNoOfProblem)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jComboBoxNoOfProblem, javax.swing.GroupLayout.PREFERRED_SIZE, 56, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(jLabelContestDuration)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jTextFieldHours, javax.swing.GroupLayout.PREFERRED_SIZE, 31, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jLabelHours)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jTextFieldMinutes, javax.swing.GroupLayout.PREFERRED_SIZE, 31, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jLabelMinutes))
         );
         jPanel1Layout.setVerticalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel1Layout.createSequentialGroup()
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel2)
-                    .addComponent(jComboBoxNoOfProblem, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                        .addComponent(jTextFieldMinutes, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(jLabelMinutes))
+                    .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                        .addComponent(jLabelNoOfProblem)
+                        .addComponent(jComboBoxNoOfProblem, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(jLabelContestDuration)
+                        .addComponent(jTextFieldHours, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(jLabelHours)))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 284, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(2, 2, 2)
@@ -235,6 +295,8 @@ public class ContestSetting extends javax.swing.JFrame {
 
         jLabel3.setText("Load From File:");
 
+        jTextFieldFileLoad.setText("C:\\Users\\Enamul\\Desktop\\Contest\\Config.txt");
+
         jButtonBrowseLoad.setText("Browse");
         jButtonBrowseLoad.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -242,18 +304,31 @@ public class ContestSetting extends javax.swing.JFrame {
             }
         });
 
-        jButtonLoad.setText("Load");
+        jButtonLoad.setText("Load Specification from File");
         jButtonLoad.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 jButtonLoadActionPerformed(evt);
             }
         });
 
-        jMenu1.setText("File");
-        jMenuBar1.add(jMenu1);
+        jButtonContestantList.setText("Configure Contestant List");
+        jButtonContestantList.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButtonContestantListActionPerformed(evt);
+            }
+        });
 
-        jMenu2.setText("Edit");
-        jMenuBar1.add(jMenu2);
+        jMenu1.setText("File");
+
+        jMenuItemExit.setText("Exit");
+        jMenuItemExit.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenuItemExitActionPerformed(evt);
+            }
+        });
+        jMenu1.add(jMenuItemExit);
+
+        jMenuBar1.add(jMenu1);
 
         setJMenuBar(jMenuBar1);
 
@@ -262,23 +337,22 @@ public class ContestSetting extends javax.swing.JFrame {
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
+                .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(0, 0, Short.MAX_VALUE))
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addGap(0, 0, Short.MAX_VALUE)
                         .addComponent(jLabel3)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(jTextFieldFileLoad, javax.swing.GroupLayout.PREFERRED_SIZE, 298, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(jButtonBrowseLoad))
-                    .addGroup(layout.createSequentialGroup()
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(layout.createSequentialGroup()
-                                .addContainerGap()
-                                .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addGroup(layout.createSequentialGroup()
-                                .addGap(174, 174, 174)
-                                .addComponent(jButtonLoad, javax.swing.GroupLayout.PREFERRED_SIZE, 105, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                        .addGap(0, 0, Short.MAX_VALUE)))
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                        .addComponent(jButtonContestantList)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(jButtonLoad)))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
@@ -289,9 +363,11 @@ public class ContestSetting extends javax.swing.JFrame {
                     .addComponent(jLabel3)
                     .addComponent(jTextFieldFileLoad, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jButtonBrowseLoad))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jButtonLoad)
                 .addGap(7, 7, 7)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jButtonLoad)
+                    .addComponent(jButtonContestantList))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addContainerGap())
         );
@@ -299,55 +375,84 @@ public class ContestSetting extends javax.swing.JFrame {
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
+    /**
+     * User selects the number of problems used in the contest. If any existing
+     * contest setting is loaded, the user would warn that all the data of the
+     * loaded contest would be deleted.
+     *
+     * @param evt the action event of selecting the number of problems from
+     * combobox.
+     */
     private void jComboBoxNoOfProblemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jComboBoxNoOfProblemActionPerformed
         // TODO add your handling code here:
 
-        if (this.contest == null) {
+        if (this.contest == null || dontProceedAction) {
             return;
         }
-        if (this.contest.numberOfProblems != 0 && startup) {
+
+        if (model.getRowCount() != 0 && initiatedContest) {
             int feedback = JOptionPane.showConfirmDialog(this, "All Previous Data Would Be Lost\nDo You Want To Continue?", "Confirmation", YES_NO_OPTION);
             if (feedback != YES_OPTION) {
+                dontProceedAction = true;
+                jComboBoxNoOfProblem.setSelectedItem(contest.numberOfProblems);
+                dontProceedAction = false;
                 return;
             }
         }
-        startup = true;
+        initiatedContest = true;
 
         int row = (int) jComboBoxNoOfProblem.getSelectedItem();
-        model = (DefaultTableModel) jTableProblems.getModel();
+
         model.setRowCount(row);
         for (int i = 0; i < row; i++) {
             model.setValueAt(i + 1, i, 0);
             model.setValueAt("", i, 1);
         }
-        System.out.println("It comes here: "+row);
+        System.out.println("It comes here: " + row);
         this.contest.numberOfProblems = row;
         this.contest.problems = new Problem[row];
-        this.contest.submissions = new Vector();
-        this.contest.accepted = new boolean[row];
+        for (int i = 0; i < row; i++) {
+            this.contest.problems[i] = new Problem();
+        }
+        if (modifyingMode) {
+            int feedback = JOptionPane.showConfirmDialog(this, "Do You Want To Clear Submission Queue?", "Clearing Submissions", YES_NO_OPTION);
+            if (feedback != YES_OPTION) {
+                this.contest.submissions = new Vector();
+            }
+        }
+
     }//GEN-LAST:event_jComboBoxNoOfProblemActionPerformed
 
+    /**
+     * It would open a window to configure a problem specification selected from
+     * the table.
+     *
+     * @param evt action event of clicking on button Configure This Problem
+     */
     private void jButtonConfigureProblemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonConfigureProblemActionPerformed
         // TODO add your handling code here:
         int currentRow = jTableProblems.getSelectedRow();
         if (currentRow == -1) {
+            JOptionPane.showMessageDialog(this, "Oops!\nYou forgot to select a problem.", "Problem Not Selected!", ERROR_MESSAGE);
             return;
         }
         if (this.contest.problems[currentRow] == null) {
             this.contest.problems[currentRow] = new Problem();
-            this.contest.accepted[currentRow] = false;
         }
         this.contest.problems[currentRow].problemNo = currentRow + 1;
         new ConfigureProblem(this, this.contest.problems[currentRow]).setVisible(true);
-        setVisible(false);
     }//GEN-LAST:event_jButtonConfigureProblemActionPerformed
 
+    /**
+     * Saves the contest specifications as text file.
+     */
     void saveAsText() {
         FileWriter writer = null;
         try {
             File toWrite = new File(jTextFieldFilePath.getText());
             writer = new FileWriter(toWrite);
 
+            writer.write(String.format("%d\n", contest.contestDuration));
             writer.write(String.format("%d\n", contest.numberOfProblems));
             for (int i = 0; i < contest.numberOfProblems; i++) {
                 writer.write(String.format("%s\n", contest.problems[i].problemName));
@@ -380,7 +485,14 @@ public class ContestSetting extends javax.swing.JFrame {
         }
     }
 
+    /**
+     * Contest configuration would be saved and back to the window of choosing
+     * Judge content or Contestant content.
+     *
+     * @param evt action event of clicking on button Save and Back
+     */
     private void jButtonSaveAndExitActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonSaveAndExitActionPerformed
+        contest.contestDuration = (Long.parseLong(jTextFieldHours.getText()) * 60 + Long.parseLong(jTextFieldMinutes.getText())) * 60;
         if (!jTextFieldFilePath.getText().equals("")) {
             saveAsText();
         }
@@ -392,6 +504,7 @@ public class ContestSetting extends javax.swing.JFrame {
             oos.flush();
             setVisible(false);
             upperClass.upperClass.upperClass.setVisible(true);
+            upperClass.upperClass.dispose();
         } catch (FileNotFoundException ex) {
             Logger.getLogger(ContestSetting.class.getName()).log(Level.SEVERE, null, ex);
         } catch (IOException ex) {
@@ -399,15 +512,24 @@ public class ContestSetting extends javax.swing.JFrame {
         }
     }//GEN-LAST:event_jButtonSaveAndExitActionPerformed
 
-    private void jComboBoxNoOfProblemItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_jComboBoxNoOfProblemItemStateChanged
-        // TODO add your handling code here:
-    }//GEN-LAST:event_jComboBoxNoOfProblemItemStateChanged
-
+    /**
+     * User chose to exit discarding everything.
+     *
+     * @param evt action event of clicking Exit button.
+     */
     private void jButtonExitActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonExitActionPerformed
         // TODO add your handling code here:
+        int response = JOptionPane.showConfirmDialog(this, "Are You Sure To Exit?\nAll unsaved data would be lost!", "Confirmation!", JOptionPane.INFORMATION_MESSAGE);
+        if(response != YES_OPTION) return;
         System.exit(0);
     }//GEN-LAST:event_jButtonExitActionPerformed
 
+    /**
+     * This button opens a window to save the problem specifications.
+     *
+     * @param evt action event of clicking on Browse button of saving
+     * specification.
+     */
     private void jButtonBrowseActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonBrowseActionPerformed
         // TODO add your handling code here:
         int retrival;
@@ -423,9 +545,16 @@ public class ContestSetting extends javax.swing.JFrame {
         }
     }//GEN-LAST:event_jButtonBrowseActionPerformed
 
+    /**
+     * This button opens a window to load the problem specifications.
+     *
+     * @param evt action event of clicking on Browse button of loading
+     * specification.
+     */
     private void jButtonBrowseLoadActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonBrowseLoadActionPerformed
         // TODO add your handling code here:
         int retrival;
+        jFileChooser.setFileSelectionMode(FILES_ONLY);
         retrival = jFileChooser.showOpenDialog(this);
 
         if (retrival == JFileChooser.APPROVE_OPTION) {
@@ -438,63 +567,75 @@ public class ContestSetting extends javax.swing.JFrame {
         }
     }//GEN-LAST:event_jButtonBrowseLoadActionPerformed
 
+    /**
+     * This loads the problems of the contest with their specifications from the
+     * specification file.
+     *
+     * @exception when it is not provided in the desired format.
+     * @param evt action event of clicking on Load button.
+     */
     private void jButtonLoadActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonLoadActionPerformed
+        if (jTextFieldFileLoad.getText().equals("")) {
+            JOptionPane.showMessageDialog(this, "Oops!\nYou forgot to select the specification file.", "File Not Selected!", ERROR_MESSAGE);
+            return;
+        }
         BufferedReader reader = null;
         try {
             // TODO add your handling code here:
             File toRead = new File(jTextFieldFileLoad.getText());
             reader = new BufferedReader(new FileReader(toRead));
             String now = reader.readLine();
+            Long contestDuration = Long.parseLong(now) / 60000;
+
+            jTextFieldHours.setText(String.format("%d", (contestDuration / 60)));
+            jTextFieldMinutes.setText(String.format("%d", (contestDuration % 60)));
+
+            now = reader.readLine();
             int noOfProblem = Integer.parseInt(now);
             jComboBoxNoOfProblem.setSelectedItem(noOfProblem);
-            
-            
-            
+
             for (int i = 0; i < noOfProblem; i++) {
                 this.contest.problems[i] = new Problem();
-                this.contest.accepted[i] = false;
-                this.contest.problems[i].problemNo = i+1;
+                this.contest.problems[i].problemNo = i + 1;
                 now = reader.readLine();
                 this.contest.problems[i].problemName = now;
-                
-                setProblemName(i+1, now);
-                
+
+                setProblemName(i + 1, now);
+
                 now = reader.readLine();
-                
-                if(now.equalsIgnoreCase("MULTIPLEFILE")){
+
+                if (now.equalsIgnoreCase("MULTIPLEFILE")) {
                     this.contest.problems[i].oneFile = false;
-                    
+
                     now = reader.readLine();
                     this.contest.problems[i].folderPath = new File(now);
-                    
+
                     now = reader.readLine();
                     this.contest.problems[i].inputExtension = now;
-                    
+
                     now = reader.readLine();
                     this.contest.problems[i].outputExtension = now;
-                }
-                else{
+                } else {
                     this.contest.problems[i].oneFile = true;
-                    
+
                     now = reader.readLine();
                     this.contest.problems[i].inputFile = new File(now);
-                    
+
                     now = reader.readLine();
                     this.contest.problems[i].outputFile = new File(now);
                 }
-                
-                                    
+
                 now = reader.readLine();
                 this.contest.problems[i].dataType = now;
-                
-                if(now.equalsIgnoreCase("DOUBLE")){
+
+                if (now.equalsIgnoreCase("DOUBLE")) {
                     now = reader.readLine();
                     this.contest.problems[i].precision = Integer.parseInt(now);
                 }
-                                    
+
                 now = reader.readLine();
                 this.contest.problems[i].timeLimit = Integer.parseInt(now);
-                
+
             }
 
         } catch (FileNotFoundException ex) {
@@ -510,65 +651,93 @@ public class ContestSetting extends javax.swing.JFrame {
         }
     }//GEN-LAST:event_jButtonLoadActionPerformed
 
-    public void setProblemName(int id, String problemName) {
-        jTableProblems.getModel().setValueAt(problemName, id - 1, 1);
+    /**
+     * User chose to exit from menu item instead of button clicking.
+     *
+     * @see private void jButtonExitActionPerformed(java.awt.event.ActionEvent
+     * evt);
+     * @param evt action event of choosing menu item Exit.
+     */
+    private void jMenuItemExitActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItemExitActionPerformed
+        // TODO add your handling code here:
+        jButtonExitActionPerformed(evt);
+    }//GEN-LAST:event_jMenuItemExitActionPerformed
 
-    }
+    private void jButtonContestantListActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonContestantListActionPerformed
+        // TODO add your handling code here:
+        new ConfigureContestants(this, contest.contestants).setVisible(true);
+    }//GEN-LAST:event_jButtonContestantListActionPerformed
 
     /**
-     * @param args the command line arguments
+     * sets the problem name.
+     *
+     * @param id problem number
+     * @param problemName Desired name of the problem
      */
-    public static void main(String args[]) {
-        /* Set the Nimbus look and feel */
-        //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
-        /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
-         * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
-         */
-        try {
-            for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
-                if ("Nimbus".equals(info.getName())) {
-                    javax.swing.UIManager.setLookAndFeel(info.getClassName());
-                    break;
-                }
-            }
-        } catch (ClassNotFoundException ex) {
-            java.util.logging.Logger.getLogger(ContestSetting.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (InstantiationException ex) {
-            java.util.logging.Logger.getLogger(ContestSetting.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (IllegalAccessException ex) {
-            java.util.logging.Logger.getLogger(ContestSetting.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (javax.swing.UnsupportedLookAndFeelException ex) {
-            java.util.logging.Logger.getLogger(ContestSetting.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        }
-        //</editor-fold>
-
-        /* Create and display the form */
-        java.awt.EventQueue.invokeLater(new Runnable() {
-            public void run() {
-//                new ContestSetting().setVisible(true);
-            }
-        });
+    public void setProblemName(int id, String problemName) {
+        jTableProblems.getModel().setValueAt(problemName, id - 1, 1);
     }
+
+//    /**
+//     * @param args the command line arguments
+//     */
+//    public static void main(String args[]) {
+//        /* Set the Nimbus look and feel */
+//        //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
+//        /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
+//         * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
+//         */
+//        try {
+//            for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
+//                if ("Nimbus".equals(info.getName())) {
+//                    javax.swing.UIManager.setLookAndFeel(info.getClassName());
+//                    break;
+//                }
+//            }
+//        } catch (ClassNotFoundException ex) {
+//            java.util.logging.Logger.getLogger(ContestSetting.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+//        } catch (InstantiationException ex) {
+//            java.util.logging.Logger.getLogger(ContestSetting.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+//        } catch (IllegalAccessException ex) {
+//            java.util.logging.Logger.getLogger(ContestSetting.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+//        } catch (javax.swing.UnsupportedLookAndFeelException ex) {
+//            java.util.logging.Logger.getLogger(ContestSetting.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+//        }
+//        //</editor-fold>
+//
+//        /* Create and display the form */
+//        java.awt.EventQueue.invokeLater(new Runnable() {
+//            public void run() {
+////                new ContestSetting().setVisible(true);
+//            }
+//        });
+//    }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton jButtonBrowse;
     private javax.swing.JButton jButtonBrowseLoad;
     private javax.swing.JButton jButtonConfigureProblem;
+    private javax.swing.JButton jButtonContestantList;
     private javax.swing.JButton jButtonExit;
     private javax.swing.JButton jButtonLoad;
     private javax.swing.JButton jButtonSaveAndExit;
     private javax.swing.JComboBox jComboBoxNoOfProblem;
     private javax.swing.JFileChooser jFileChooser;
     private javax.swing.JLabel jLabel1;
-    private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
+    private javax.swing.JLabel jLabelContestDuration;
+    private javax.swing.JLabel jLabelHours;
+    private javax.swing.JLabel jLabelMinutes;
+    private javax.swing.JLabel jLabelNoOfProblem;
     private javax.swing.JMenu jMenu1;
-    private javax.swing.JMenu jMenu2;
     private javax.swing.JMenuBar jMenuBar1;
+    private javax.swing.JMenuItem jMenuItemExit;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JTable jTableProblems;
     private javax.swing.JTextField jTextFieldFileLoad;
     private javax.swing.JTextField jTextFieldFilePath;
+    private javax.swing.JTextField jTextFieldHours;
+    private javax.swing.JTextField jTextFieldMinutes;
     // End of variables declaration//GEN-END:variables
 }

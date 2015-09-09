@@ -40,5 +40,6 @@ public class Submission implements Serializable{
         this.timePassed = timePassed;
         this.user = user;
         this.submittedFile = submittedFile;
+        this.problemId = problemId;
     }
 }

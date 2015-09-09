@@ -16,6 +16,14 @@ package contest;
 
 import java.awt.Dimension;
 import java.awt.Toolkit;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.net.Socket;
+import java.net.SocketTimeoutException;
+import java.net.UnknownHostException;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -24,23 +32,34 @@ import java.sql.SQLException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import static javax.swing.JFrame.EXIT_ON_CLOSE;
+import javax.swing.JOptionPane;
+import static javax.swing.JOptionPane.NO_OPTION;
+import static javax.swing.JOptionPane.YES_OPTION;
+import security.Hashing;
+import static security.Hashing.sha512Hex;
 
 /**
- *
+ * User verification is done here. If user could pass this process, he would
+ * pushed to the next processes, otherwise not. The user verification is done
+ * on the basis of user data from database.
+ * @version 1.0
  * @author Enamul
  */
 public class UserVerification extends javax.swing.JFrame {
-    public static String dataBaseUrl = "jdbc:mysql://localhost:3306/";
+    //These variables are fully related to database which are self-explanatory
+    public static String dataBaseUrl = "jdbc:mysql://";
     public static String dataBaseName = "contest";
     public static String dataBaseTable = "users";
+
     /**
-     * Creates new form userVerification
+     * Creates new form userVerification. It ensures the GUI prompts on the center
+     * of the screen.
      */
     public UserVerification() {
         initComponents();
-        
+
         jLabelInvalidUserPass.setVisible(false);
-        
+
         //adjust screen
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
         double width = screenSize.getWidth();
@@ -83,11 +102,16 @@ public class UserVerification extends javax.swing.JFrame {
         jLabel3.setHorizontalAlignment(javax.swing.SwingConstants.TRAILING);
         jLabel3.setText("Role:");
 
-        jComboBoxRole.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "Judge", "Contestant" }));
+        jComboBoxRole.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "Contestant", "Judge" }));
 
         jLabel4.setText("Judge IP:");
 
-        jTextFieldJudgeIP.setText("localhost");
+        jTextFieldJudgeIP.setText("10.100.32.253");
+        jTextFieldJudgeIP.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jTextFieldJudgeIPActionPerformed(evt);
+            }
+        });
 
         jPasswordFieldPass.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -176,15 +200,15 @@ public class UserVerification extends javax.swing.JFrame {
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel3)
                     .addComponent(jComboBoxRole, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(18, 18, 18)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel4)
                     .addComponent(jTextFieldJudgeIP, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 43, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 28, Short.MAX_VALUE)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jButtonExit)
                     .addComponent(jButtonSubmit))
-                .addGap(24, 24, 24))
+                .addGap(26, 26, 26))
         );
 
         jMenu1.setText("File");
@@ -200,58 +224,134 @@ public class UserVerification extends javax.swing.JFrame {
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jPanel1, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addGroup(layout.createSequentialGroup()
+                .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(0, 0, Short.MAX_VALUE))
         );
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
-
+    /**
+     * destroys the frame and close all its works.
+     * @param evt action event of clicking exit button
+     */
     private void jButtonExitActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonExitActionPerformed
         // TODO add your handling code here:
+        int response = JOptionPane.showConfirmDialog(this, "Are You Sure To Exit?\nAll unsaved data would be lost!", "Confirmation!", JOptionPane.INFORMATION_MESSAGE);
+        if(response != YES_OPTION) return;
         System.exit(0);
     }//GEN-LAST:event_jButtonExitActionPerformed
-
+    /**
+     * If user access as 'Judge', it verifies user from getting data from database.
+     * if user access as 'Contestant', then it request the corresponding 'Judge IP'
+     * for approving 'authorization'. For this, it uses port 4949.
+     * Note: Now, it is in debugging mode. So, it approves as judge though it has
+     * not verified by database.
+     * @param evt action event of clicking Submit button
+     */
     private void jButtonSubmitActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonSubmitActionPerformed
         // TODO add your handling code here:
+        boolean success = false;
+        String username = jTextFieldUsername.getText();
+        String password = String.copyValueOf(jPasswordFieldPass.getPassword());
+        String role = (String) jComboBoxRole.getSelectedItem();
+        
         try {
             // TODO add your handling code here:
-            String username = jTextFieldUsername.getText();
-            String password = String.copyValueOf(jPasswordFieldPass.getPassword());
-            String role = (String)jComboBoxRole.getSelectedItem();
-            String query = "select * from "+dataBaseTable+" where username = ? and password = ? and role = ?";
-            boolean success = false;
-            Class.forName("com.mysql.jdbc.Driver").newInstance();
-            Connection conn = DriverManager.getConnection(dataBaseUrl+dataBaseName, "root", "root");
-            PreparedStatement ps = conn.prepareStatement(query);
-            ps.setString(1, username);
-            ps.setString(2, password);
-            ps.setString(3, role);
-            ResultSet rs = ps.executeQuery();
-            while(rs.next()){
-                String us = rs.getString("username");
-                String pass = rs.getString("password");
-                if(us.equals(username) && pass.equals(password)) success = true;
+            
+            String query = "select * from " + dataBaseTable + " where username = ? and password = ? and role = ?";
+            
+//            if (jTextFieldJudgeIP.getText().equals(InetAddress.getLocalHost().getHostAddress())||jTextFieldJudgeIP.getText().equals("localhost")) {
+            if (jComboBoxRole.getSelectedItem().equals("Judge")) {
+                success = true;
+                Class.forName("com.mysql.jdbc.Driver").newInstance();
+                Connection conn = DriverManager.getConnection(dataBaseUrl + jTextFieldJudgeIP.getText() + ":3306/" + dataBaseName, "root", "root");
+                PreparedStatement ps = conn.prepareStatement(query);
+                ps.setString(1, username);
+                ps.setString(2, password);
+                ps.setString(3, role);
+                ResultSet rs = ps.executeQuery();
+                while (rs.next()) {
+                    String us = rs.getString("username");
+                    String pass = rs.getString("password");
+                    if (us.equals(username) && pass.equals(password)) {
+                        success = true;
+                    }
+                }
+            } else {
+                ObjectOutputStream output = null; // output stream to server
+                ObjectInputStream input; // input stream from server
+                String message = "";
+                String host = jTextFieldJudgeIP.getText();
+
+                try {
+                    
+                    System.out.println("host = " + host);
+                    Socket client = new Socket();
+                    client.connect(new InetSocketAddress(host, 4949),1000);
+                    System.out.println("Its okay1");
+                    if(client.isClosed()) throw new IOException();
+                    System.out.println("Its okay2");
+                    output = new ObjectOutputStream(client.getOutputStream());
+                    output.flush(); // flush output buffer to send header information
+                    output.writeObject(String.format("%s", username));
+                    output.writeObject(sha512Hex(String.format("%s", password)));
+                    output.writeObject(sha512Hex(String.format("%s", role)));
+                    output.flush();
+                    
+                    input = new ObjectInputStream(client.getInputStream());
+                    message = (String) input.readObject();
+                    System.out.println("host = " + message);
+                    success = sha512Hex("Yes").equals(message);
+                    output.close(); // close output stream
+                    input.close(); // close input stream
+                    client.close(); // close socket
+
+                } catch (SocketTimeoutException ex){
+                    JOptionPane.showMessageDialog(this, "There is no server running on IP address: "+host, "Login Failed!", JOptionPane.ERROR_MESSAGE);
+                }catch (IOException | ClassNotFoundException ex) {
+                    JOptionPane.showMessageDialog(this, "Judge restricted access.", "Login Failed!", JOptionPane.ERROR_MESSAGE);
+//                    Logger.getLogger(RunProgram.class.getName()).log(Level.SEVERE, null, ex);
+                } 
             }
 //            System.out.println(" ? = "+success);
-            if(success){
+            
+
+        } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | SQLException ex) {
+//            java.util.logging.Logger.getLogger(ShowSubmissions.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+        } 
+        
+        if (success) {
                 setVisible(false);
-                new UserInterface(username,role,this).setVisible(true);
-            }
-            else {
+                new UserInterface(username, Hashing.sha512Hex(password),role, this, jTextFieldJudgeIP.getText());
+            } else {
                 jLabelInvalidUserPass.setVisible(true);
             }
-            
-        } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | SQLException ex) {
-            java.util.logging.Logger.getLogger(ShowSubmissions.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        }
     }//GEN-LAST:event_jButtonSubmitActionPerformed
 
+    /**
+     * User pressed enter after giving password instead of pressing submit button.
+     * @see private void jButtonSubmitActionPerformed(java.awt.event.ActionEvent evt);
+     * @param evt action event of pressing enter in password field.
+     */
     private void jPasswordFieldPassActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jPasswordFieldPassActionPerformed
         // TODO add your handling code here:
         jButtonSubmitActionPerformed(evt);
     }//GEN-LAST:event_jPasswordFieldPassActionPerformed
 
     /**
+     * User pressed enter after giving 'Judge IP' instead of pressing submit button.
+     * @see private void jButtonSubmitActionPerformed(java.awt.event.ActionEvent evt);
+     * @param evt action event of pressing enter in Judge IP field.
+     */
+    private void jTextFieldJudgeIPActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jTextFieldJudgeIPActionPerformed
+        // TODO add your handling code here:
+        jButtonSubmitActionPerformed(evt);
+    }//GEN-LAST:event_jTextFieldJudgeIPActionPerformed
+
+    /**
+     * This function sets the look and feel and opens the user  verification
+     * process with necessary GUI.
      * @param args the command line arguments
      */
     public static void main(String args[]) {

@@ -168,23 +168,24 @@ public class CodeProcessing {
             File fileSTDOUT = new File(String.format("output%d.txt", getNewFileNumber()));
             deleteFile(fileSTDOUT);
             submission.verdict = "RUNNING...";
-            Date now = new Date();
-            int verdictCode = RunProgram(fileEXE, problem.inputFile, fileSTDOUT, problem.timeLimit);
             
+            long now,end;
+            now = new Date().getTime();
+            int verdictCode = RunProgram(fileEXE, problem.inputFile, fileSTDOUT, problem.timeLimit);
+            end = new Date().getTime();
             deleteFile(fileEXE);
 
             if (verdictCode == 4) {
-                submission.timeElapsed = new Date().getTime() - now.getTime();
+                submission.timeElapsed = end - now;
                 return "TIME LIMIT EXCEEDED";
 
             }
             if (verdictCode == 3) {
                 return "RUNTIME ERROR";
             }
-
             if (matcher.process(problem,fileSTDOUT, problem.outputFile)) {
                 deleteFiles(fileSTDOUT);
-                submission.timeElapsed = new Date().getTime() - now.getTime();
+                submission.timeElapsed = end - now;
                 return "ACCEPTED";
             } else {
                 deleteFiles(fileSTDOUT);
@@ -203,14 +204,16 @@ public class CodeProcessing {
             });
             
             int extensionLength = problem.inputExtension.length();
-            Date now = new Date();
+
+            long now, end, totalTime=0;
             for (int i = 0; i < inputFiles.length; i++) {
                 submission.verdict = String.format("RUNNING...(%d)",i+1);
                 File fileSTDOUT = new File(String.format("output%d.txt", getNewFileNumber()));
                 deleteFile(fileSTDOUT);
+                now = new Date().getTime();
                 int verdictCode = RunProgram(fileEXE, inputFiles[i], fileSTDOUT, problem.timeLimit);
-                
-
+                end = new Date().getTime();
+                totalTime += end-now; 
                 if (verdictCode == 4) {
                     deleteFile(fileEXE);
                     deleteFiles(fileSTDOUT);
@@ -227,13 +230,13 @@ public class CodeProcessing {
                 if (!matcher.process(problem,fileSTDOUT, new File(inputFiles[i].toString().substring(0, inputFiles[i].toString().length()-extensionLength)+problem.outputExtension))) {
                     deleteFile(fileEXE);
                     deleteFiles(fileSTDOUT);
-                    System.out.println("returned from 203th line");
-                    return "WRONG ANSWER";
+//                    System.out.println("returned from 203th line");
+                    return String.format("WRONG ANSWER ON TEST %d",(i+1));
                 }
                 deleteFiles(fileSTDOUT);
             }
-            submission.timeElapsed = new Date().getTime() - now.getTime();
-            submission.timeElapsed/=inputFiles.length;
+//            submission.timeElapsed = new Date().getTime() - now.getTime();
+            submission.timeElapsed= totalTime/inputFiles.length;
             deleteFile(fileEXE);
             return "ACCEPTED";
         }

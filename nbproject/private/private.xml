@@ -2,6 +2,30 @@
 <project-private xmlns="http://www.netbeans.org/ns/project-private/1">
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
-        <group/>
+        <group>
+            <file>file:/H:/Dropbox/JavaProjects/SelfContest/src/contest/ContestSetting.java</file>
+            <file>file:/H:/Dropbox/JavaProjects/SelfContest/src/contest/ShowSubmissions.java</file>
+            <file>file:/H:/Dropbox/JavaProjects/SelfContest/src/contest/ContestUpdate.java</file>
+            <file>file:/H:/Dropbox/JavaProjects/SelfContest/src/contest/UserVerification.java</file>
+            <file>file:/H:/Dropbox/JavaProjects/SelfContest/src/contest/ShowCode.java</file>
+            <file>file:/H:/Dropbox/JavaProjects/SelfContest/src/contest/RunContest.java</file>
+            <file>file:/H:/Dropbox/JavaProjects/SelfContest/src/contest/RunProgram.java</file>
+            <file>file:/H:/Dropbox/JavaProjects/SelfContest/src/contest/Submission.java</file>
+            <file>file:/H:/Dropbox/JavaProjects/SelfContest/src/contest/ConfigureContest.java</file>
+            <file>file:/H:/Dropbox/JavaProjects/SelfContest/src/contest/ConfigureProblem.java</file>
+            <file>file:/H:/Dropbox/JavaProjects/SelfContest/src/contest/StartContest.java</file>
+            <file>file:/H:/Dropbox/JavaProjects/SelfContest/src/contest/ConfigureContestants.java</file>
+            <file>file:/H:/Dropbox/JavaProjects/SelfContest/src/contest/ContestDurationEdit.java</file>
+            <file>file:/H:/Dropbox/JavaProjects/SelfContest/src/judgecpp/CodeRun.java</file>
+            <file>file:/H:/Dropbox/JavaProjects/SelfContest/src/contest/Contest.java</file>
+            <file>file:/H:/Dropbox/JavaProjects/SelfContest/src/security/Encryption.java</file>
+            <file>file:/H:/Dropbox/JavaProjects/SelfContest/src/contest/UserInterface.java</file>
+            <file>file:/H:/Dropbox/JavaProjects/SelfContest/src/contest/RankListTable.java</file>
+            <file>file:/H:/Dropbox/JavaProjects/SelfContest/src/contest/Judging.java</file>
+            <file>file:/H:/Dropbox/JavaProjects/SelfContest/src/contest/JudgeApplication.java</file>
+            <file>file:/H:/Dropbox/JavaProjects/SelfContest/src/judgecpp/CodeProcessing.java</file>
+            <file>file:/H:/Dropbox/JavaProjects/SelfContest/src/contest/NewContest.java</file>
+            <file>file:/H:/Dropbox/JavaProjects/SelfContest/src/judgecpp/VerdictGiver.java</file>
+        </group>
     </open-files>
 </project-private>

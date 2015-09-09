@@ -15,16 +15,32 @@
 package contest;
 
 import java.io.Serializable;
+import java.util.HashMap;
 import java.util.Vector;
 
 /**
- *
+ * All information of a contest would be stored as an object of this class.
+ * @since 0.1
+ * @version 1.0
  * @author Enamul
  */
 public class Contest implements Serializable{
+    long contestDuration;
     long passedTime;
     int numberOfProblems;
+    HashMap<String,String>contestants;
     Problem[] problems;
     Vector<Submission>submissions;
-    boolean accepted[];
+    
+    /**
+     * Initializes all components.
+     */
+    public Contest(){
+        contestDuration = 0;
+        passedTime = 0;
+        numberOfProblems = 0;
+        contestants = new HashMap();
+        problems = null;
+        submissions = new Vector<>();
+    }
 }
